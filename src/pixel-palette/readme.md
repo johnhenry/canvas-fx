@@ -2,7 +2,8 @@
 
 A pixel effect that limits the image to a palette, optionally with
 dithering, which spreads the error as patterns of dots so gradients
-survive. Use it inside a [`<pixel-canvas>`](../pixel-canvas/readme.md).
+survive. Use it as `palette(colors, dither)` in a [`<pixel-canvas>`](../pixel-canvas/readme.md)'s
+`effects`, or as this element wrapped around the source.
 Part of [pixelable](../readme.md).
 
 ## Usage
@@ -10,6 +11,11 @@ Part of [pixelable](../readme.md).
 ```html
 <script type="module" src="https://esm.sh/@johnhenry/domkit/pixelable/global.mjs"></script>
 
+<pixel-canvas width="160" effects="palette(gameboy, ordered)">
+  <img src="photo.jpg" alt="A photo in Game Boy colors" />
+</pixel-canvas>
+
+<!-- or, as an element -->
 <pixel-canvas width="160">
   <pixel-palette colors="gameboy" dither="ordered">
     <img src="photo.jpg" alt="A photo in Game Boy colors" />
@@ -31,7 +37,7 @@ Part of [pixelable](../readme.md).
 | `sepia` | four browns |
 | `pico-8` | the 16 PICO-8 colors |
 
-The named palettes are exported from `palettes.mjs` as `PALETTES`, and
+The named palettes are the default export of `palettes.mjs`, and
 the `palette` property gives the resolved colors as `[r, g, b]` triples.
 
 ## Dithering
@@ -59,12 +65,6 @@ the `palette` property gives the resolved colors as `[r, g, b]` triples.
 | Property | Type | Description |
 |---|---|---|
 | `palette` (read-only) | `number[][]` | The resolved palette, as `[r, g, b]` triples. |
-
-### Methods
-
-| Method | Description |
-|---|---|
-| `apply(image)` |  |
 
 <!-- api:end -->
 
