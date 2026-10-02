@@ -192,9 +192,15 @@ test("a playing video is redrawn every frame", async ({ page }) => {
   // Some engine builds (WebKit on Linux CI) can't play a canvas stream at
   // all: video.play() never settles. Skip there rather than time out.
   const plays = await page.evaluate(async () => {
+    const feed = document.getElementById("feed");
+    const context = feed.getContext("2d");
+    context.fillStyle = "red";
+    context.fillRect(0, 0, 4, 4); // a stream has no frames until something is drawn
     const video = document.querySelector("video");
-    video.srcObject = document.getElementById("feed").captureStream(30);
+    video.srcObject = feed.captureStream(30);
+    const tick = setInterval(() => context.fillRect(0, 0, 4, 4), 30);
     const started = await Promise.race([video.play().then(() => true, () => false), new Promise((r) => setTimeout(() => r(false), 3000))]);
+    clearInterval(tick);
     video.pause();
     return started;
   });
