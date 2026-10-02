@@ -1,4 +1,6 @@
-// grid(size, color, line): grid lines every `size` pixels.
+// grid(size, color, line): grid lines every `size` pixels. A fully
+// transparent color (`transparent`) cuts the lines out instead, leaving
+// separate tiles with gaps the background shows through.
 import { number, parseColor } from "../effects.mjs";
 
 export const params = ["size", "color", "line"];
@@ -14,6 +16,10 @@ export function apply(image, p) {
     for (let x = 0; x < width; x++) {
       if (x % size >= line && y % size >= line) continue;
       const i = (y * width + x) * 4;
+      if (a === 0) {
+        data[i + 3] = 0; // cut
+        continue;
+      }
       data[i] = data[i] * (1 - alpha) + r * alpha;
       data[i + 1] = data[i + 1] * (1 - alpha) + g * alpha;
       data[i + 2] = data[i + 2] * (1 - alpha) + b * alpha;

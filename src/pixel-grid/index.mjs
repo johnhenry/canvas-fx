@@ -10,7 +10,7 @@ import { params, apply } from "./effect.mjs";
  * @summary A pixel effect: grid lines between cells.
  *
  * @attr {number} size - Cell size, in the working image's pixels. Default 8.
- * @attr {string} color - Line color, any CSS color (transparency blends). Default `rgb(0 0 0 / 0.35)`.
+ * @attr {string} color - Line color, any CSS color (transparency blends). `transparent` cuts gaps instead of drawing lines. Default `rgb(0 0 0 / 0.35)`.
  * @attr {number} line - Line thickness in pixels. Default 1.
  * @attr {boolean} disabled - Pass the image through unchanged.
  */
