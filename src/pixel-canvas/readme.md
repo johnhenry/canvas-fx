@@ -3,7 +3,8 @@
 Draws an image, video, or canvas through [pixel effects](../readme.md),
 listed in its `effects` attribute like CSS `filter`, or wrapped around the
 source as elements. The first `<img>`, `<video>`, or `<canvas>` inside is
-the source. Part of [pixelable](../readme.md).
+the source, or a [`<pixel-sprite>`](../pixel-sprite/readme.md). Part of
+[pixelable](../readme.md).
 
 ## Usage
 
@@ -95,7 +96,7 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 
 | Property | Type | Description |
 |---|---|---|
-| `source` (read-only) | `HTMLImageElement \| HTMLVideoElement \| HTMLCanvasElement \| null` | The image, video, or canvas being drawn: the first one inside. |
+| `source` (read-only) | `Element \| null` | The image, video, canvas, or `<pixel-sprite>` being drawn: the first one inside. |
 | `effectElements` (read-only) | `Element[]` | The effect elements wrapped around the source, in the order they run (innermost first). Disabled ones are included. |
 | `effects` | `string` | Mirrors the `effects` attribute. |
 | `swatches` | `number` | How many swatches to publish. Mirrors the `swatches` attribute. |

@@ -504,3 +504,105 @@ test.describe("colors from the image", () => {
     expect(result.afterRemoval).toEqual(["", "", ""]);
   });
 });
+
+test.describe("pixel-sprite", () => {
+  const spritePixels = (page, id) =>
+    page.evaluate((id) => {
+      const canvas = document.getElementById(id).canvas;
+      const { width, height } = canvas;
+      const data = canvas.getContext("2d").getImageData(0, 0, width, height).data;
+      const rows = [];
+      for (let y = 0; y < height; y++) {
+        const row = [];
+        for (let x = 0; x < width; x++) row.push([...data.slice((y * width + x) * 4, (y * width + x) * 4 + 4)].join(","));
+        rows.push(row);
+      }
+      return rows;
+    }, id);
+
+  test("draws text as pixels, with a color key; . is transparent; indentation doesn't matter", async ({ page }) => {
+    await mount(
+      page,
+      `<pixel-sprite id="s" colors="# black; o rgb(255 200 0)" alt="A coin">
+         .#.
+         #o#
+       </pixel-sprite>`,
+      MODULES,
+    );
+    const T = "0,0,0,0";
+    const K = "0,0,0,255";
+    const O = "255,200,0,255";
+    expect(await spritePixels(page, "s")).toEqual([[T, K, T], [K, O, K]]);
+    const box = await page.evaluate(() => {
+      const r = document.getElementById("s").getBoundingClientRect();
+      return [Math.round(r.width), Math.round(r.height)];
+    });
+    expect(box, "scaled 8× by default").toEqual([24, 16]);
+  });
+
+  test("named palettes number their colors: pico-8 by default, hex digits", async ({ page }) => {
+    await mount(page, `<pixel-sprite id="s">08c</pixel-sprite><pixel-sprite id="g" colors="gameboy">0123</pixel-sprite>`, MODULES);
+    expect(await spritePixels(page, "s")).toEqual([["0,0,0,255", "255,0,77,255", "41,173,255,255"]]);
+    expect((await spritePixels(page, "g"))[0][3]).toBe("155,188,15,255");
+  });
+
+  test("frames: blank lines separate them; frame is settable and wraps; fps animates", async ({ page }) => {
+    await mount(page, `<pixel-sprite id="s" colors="# black" paused fps="30">#.\n\n.#\n\n##</pixel-sprite>`, MODULES);
+    const state = await page.evaluate(() => {
+      const s = document.getElementById("s");
+      const frames = s.frames;
+      s.frame = 4;
+      return { frames, frame: s.frame };
+    });
+    expect(state).toEqual({ frames: 3, frame: 1 });
+    const seen = await page.evaluate(async () => {
+      const s = document.getElementById("s");
+      const events = [];
+      for (const type of ["play", "pause"]) s.addEventListener(type, () => events.push(type));
+      const frames = new Set();
+      s.addEventListener("framechange", () => frames.add(s.frame));
+      s.play();
+      await new Promise((r) => setTimeout(r, 300));
+      s.pause();
+      return { events, frames: frames.size };
+    });
+    expect(seen.events).toEqual(["play", "pause"]);
+    expect(seen.frames).toBe(3);
+  });
+
+  test("reduced motion: it doesn't animate on its own", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await mount(page, `<pixel-sprite id="s" colors="# black" fps="30">#.\n\n.#</pixel-sprite>`, MODULES);
+    await page.waitForTimeout(200);
+    expect(await page.evaluate(() => document.getElementById("s").frame)).toBe(0);
+  });
+
+  test("editing the text or colors redraws; alt names it like an <img>", async ({ page }) => {
+    await mount(page, `<pixel-sprite id="s" colors="# black" alt="A dot">#</pixel-sprite><pixel-sprite id="d" colors="# black">#</pixel-sprite>`, MODULES);
+    await page.evaluate(() => {
+      const s = document.getElementById("s");
+      s.textContent = "##";
+      s.setAttribute("colors", "# white");
+    });
+    await expect.poll(() => spritePixels(page, "s")).toEqual([["255,255,255,255", "255,255,255,255"]]);
+    expect(await page.evaluate(() => [document.getElementById("s").getAttribute("role"), document.getElementById("s").getAttribute("aria-label"), document.getElementById("d").getAttribute("role")])).toEqual(["img", "A dot", "presentation"]);
+  });
+
+  test("is a <pixel-canvas> source: scaled up crisply, through effects, redrawn per frame", async ({ page }) => {
+    await mount(
+      page,
+      `<pixel-canvas id="p" width="4" effects="palette(#000 #f00)"><pixel-sprite id="s" colors="# black; o red" paused alt="A flag">#o\n\no#</pixel-sprite></pixel-canvas>`,
+      MODULES,
+    );
+    const read = () =>
+      page.evaluate(() => {
+        const c = document.getElementById("p").canvas;
+        if (!c.width) return null; // not drawn yet
+        const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+        return { size: [c.width, c.height], left: [...d.slice(0, 3)].join(), right: [...d.slice(12, 15)].join(), label: document.getElementById("p").getAttribute("aria-label") };
+      });
+    await expect.poll(read).toEqual({ size: [4, 2], left: "0,0,0", right: "255,0,0", label: "A flag" });
+    await page.evaluate(() => (document.getElementById("s").frame = 1));
+    await expect.poll(() => read().then((r) => r && [r.left, r.right])).toEqual(["255,0,0", "0,0,0"]);
+  });
+});

@@ -83,6 +83,80 @@
   </figure>
 </div>
 
+<h2>Sprites</h2>
+<div class="row">
+  <figure>
+    <pixel-sprite alt="A heart" style="--domkit-sprite-scale: 12">
+      .8.8.
+      88888
+      88888
+      .888.
+      ..8..
+    </pixel-sprite>
+    <figcaption>PICO-8 digits</figcaption>
+  </figure>
+  <figure>
+    <pixel-sprite id="coin" colors=". transparent; # #5f3c14; o #ffcf40; w #fff6c0" fps="8" alt="A spinning coin" style="--domkit-sprite-scale: 10">
+      ..####..
+      .#oooo#.
+      #owoooo#
+      #owoooo#
+      #oooooo#
+      .#oooo#.
+      ..####..
+
+      ...##...
+      ..#oo#..
+      .#owoo#.
+      .#owoo#.
+      .#oooo#.
+      ..#oo#..
+      ...##...
+
+      ...##...
+      ...#o#..
+      ...#w#..
+      ...#w#..
+      ...#o#..
+      ...#o#..
+      ...##...
+
+      ...##...
+      ..#oo#..
+      .#oowo#.
+      .#oowo#.
+      .#oooo#.
+      ..#oo#..
+      ...##...
+    </pixel-sprite>
+    <figcaption><code>fps="8"</code> <button commandfor="coin" command="--toggle">Play/pause</button></figcaption>
+  </figure>
+  <figure>
+    <pixel-canvas width="128" effects="crt(0.4, 0.3)" style="inline-size: 192px">
+      <pixel-sprite colors="gameboy" fps="4" alt="A blinking face, on an old screen">
+        33333333
+        32222223
+        32022023
+        32222223
+        32022023
+        32200223
+        32222223
+        33333333
+
+        33333333
+        32222223
+        32222223
+        32000023
+        32222223
+        32200223
+        32222223
+        33333333
+      </pixel-sprite>
+    </pixel-canvas>
+    <figcaption>A sprite through <code>crt()</code></figcaption>
+  </figure>
+</div>
+
 <h2>Colors from the image</h2>
 <div class="row">
   <figure id="themed" style="padding: 12px; border-radius: 8px; background: var(--pixel-swatch-1, #eee); color: white; border: 6px solid var(--pixel-swatch-3, #ccc)">
