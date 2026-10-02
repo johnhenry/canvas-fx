@@ -4,8 +4,9 @@
 /** Draws its source image, video, or canvas through the pixel effects
  * wrapped around it. */
 export default class PixelCanvas extends HTMLElement {
-  /** The image, video, or canvas being drawn: the first one inside. */
-  readonly source: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | null;
+  /** The image, video, canvas, or `<pixel-sprite>` being drawn: the first
+   * one inside. */
+  readonly source: Element | null;
   /** The effect elements wrapped around the source, in the order they run
    * (innermost first). Disabled ones are included. */
   readonly effectElements: Element[];

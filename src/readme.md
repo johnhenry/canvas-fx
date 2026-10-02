@@ -28,7 +28,10 @@ image can't be read, the plain `<img>` shows, so nothing is lost.
 | `crt(scanlines, mask, glow)` | [`<pixel-crt>`](./pixel-crt/readme.md) | An old screen: scanlines and a color stripe mask |
 | `chroma-key(color, tolerance, softness)` | [`<pixel-chroma-key>`](./pixel-chroma-key/readme.md) | Makes a color transparent (green screen) |
 
-The [`<pixel-canvas>`](./pixel-canvas/readme.md) draws the result.
+The [`<pixel-canvas>`](./pixel-canvas/readme.md) draws the result. Its
+source can be an `<img>`, a `<video>`, a `<canvas>`, or a
+[`<pixel-sprite>`](./pixel-sprite/readme.md): pixel art written as text,
+with animation frames.
 `global.mjs` here registers it and every effect element; for the
 `effects` attribute alone, `pixel-canvas/global.mjs` is enough.
 
@@ -99,6 +102,8 @@ an attribute. Any element with an `apply(image)` method works.
   `<pixel-canvas>` for a virtual backdrop.
 - **Privacy:** `mosaic(16)` makes faces or screenshots unrecognizable, on
   the client.
+- **Icons and game art with no image files:** `<pixel-sprite>`, animated
+  with `fps`, run through `crt()` or `palette(gameboy)`.
 - **Theme from a picture:** `<pixel-canvas swatches="3" swatches-target="html">`
   sets `--pixel-swatch-1` … `--pixel-swatch-3` from an album cover or
   photo, for the page's CSS to use.

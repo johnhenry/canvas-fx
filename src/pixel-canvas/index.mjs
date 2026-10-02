@@ -25,7 +25,7 @@ import "../builtins.mjs";
 import { effectRegistry, getPixelEffect, parseEffects, resolveParams } from "../effects.mjs";
 import { dominantColors, toHex } from "../quantize.mjs";
 
-const SOURCES = "img, video, canvas";
+const SOURCES = "img, video, canvas, pixel-sprite";
 const setAttr = (element, name, value) => {
   if (element.getAttribute(name) !== value) element.setAttribute(name, value);
 };
@@ -35,7 +35,7 @@ const setAttr = (element, name, value) => {
  * wrapped around it.
  *
  * @tag pixel-canvas
- * @summary Pixel effects on any image, video, or canvas, by wrapping it in effect elements.
+ * @summary Pixel effects on any image, video, canvas, or pixel sprite.
  *
  * @attr {number} width - Working width in pixels: the source is scaled to it (keeping its aspect ratio) before the effects run. Smaller is faster and chunkier. Default: the source's own width.
  * @attr {number} height - Working height, if `width` isn't given.
@@ -116,8 +116,9 @@ export default class PixelCanvas extends HTMLElement {
   }
 
   /**
-   * The image, video, or canvas being drawn: the first one inside.
-   * @type {HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | null}
+   * The image, video, canvas, or `<pixel-sprite>` being drawn: the first
+   * one inside.
+   * @type {Element | null}
    * @readonly
    */
   get source() {
@@ -230,7 +231,7 @@ export default class PixelCanvas extends HTMLElement {
 
   #bindSource(source) {
     if (source === this.#source) return;
-    const events = ["load", "loadeddata", "seeked", "play", "resize"];
+    const events = ["load", "loadeddata", "seeked", "play", "resize", "framechange"];
     for (const type of events) this.#source?.removeEventListener(type, this.#onSourceEvent);
     this.#stopVideo();
     this.#source = source;
@@ -262,7 +263,13 @@ export default class PixelCanvas extends HTMLElement {
     cancelAnimationFrame(this.#frame);
   }
 
+  // What drawImage draws: a sprite's own canvas, or the source itself.
+  #drawable(source) {
+    return source.localName === "pixel-sprite" ? source.canvas : source;
+  }
+
   #size(source) {
+    source = this.#drawable(source);
     const natural =
       source instanceof HTMLImageElement
         ? [source.naturalWidth, source.naturalHeight]
@@ -289,8 +296,11 @@ export default class PixelCanvas extends HTMLElement {
     const [width, height] = size;
     try {
       const work = new OffscreenCanvas(width, height).getContext("2d", { willReadFrequently: true });
-      work.imageSmoothingEnabled = true;
-      work.drawImage(source, 0, 0, width, height);
+      const drawable = this.#drawable(source);
+      // Shrinking smooths (averaging); enlarging doesn't, so pixel art and
+      // small sources stay crisp.
+      work.imageSmoothingEnabled = width < (drawable.naturalWidth || drawable.videoWidth || drawable.width);
+      work.drawImage(drawable, 0, 0, width, height);
       let image = work.getImageData(0, 0, width, height);
       for (const effect of this.effectElements) {
         if (effect.hasAttribute("disabled")) continue;
