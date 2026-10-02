@@ -59,7 +59,7 @@ test("effects run from the inside out, the way the markup nests", async ({ page 
   const result = await page.evaluate(() => ({
     mosaicFirst: window.pixels(document.getElementById("mosaic-first")).flat(),
     paletteFirst: window.pixels(document.getElementById("palette-first")).flat(),
-    order: document.getElementById("mosaic-first").effects.map((e) => e.localName),
+    order: document.getElementById("mosaic-first").effectElements.map((e) => e.localName),
   }));
   expect(result.order).toEqual(["pixel-mosaic", "pixel-palette"]);
   expect(new Set(result.mosaicFirst)).toEqual(new Set(["255,255,255"]));
@@ -127,15 +127,44 @@ test("pixel-grid draws lines every size pixels", async ({ page }) => {
   ]);
 });
 
-test("custom effects: definePixelFilter, and invalidate() redraws", async ({ page }) => {
-  // Defined after the markup is in the page: it upgrades in place.
-  await setup(page, `<pixel-canvas id="p"><pixel-tint id="t"><canvas data-source></canvas></pixel-tint></pixel-canvas>`, [["#000"]]);
+test("definePixelEffect makes an effect usable both ways; a later definition redraws", async ({ page }) => {
+  await setup(
+    page,
+    `<pixel-canvas id="attr" effects="tint(200)"><canvas data-source></canvas></pixel-canvas>
+     <pixel-canvas id="el"><pixel-tint amount="120"><canvas data-source></canvas></pixel-tint></pixel-canvas>`,
+    [["#000"]],
+  );
+  const read = (id) => page.evaluate((id) => window.pixels(document.getElementById(id))[0][0], id);
+  const errors = await page.evaluate(() => {
+    window.errors = [];
+    document.getElementById("attr").addEventListener("error", (e) => window.errors.push(e.message));
+  });
+  void errors;
   await page.evaluate(async () => {
-    const { definePixelFilter } = await import("/src/pixelable/pixel-filter.mjs");
-    definePixelFilter("pixel-tint", (image, element) => {
-      const amount = element.amount ?? 0;
-      for (let i = 0; i < image.data.length; i += 4) image.data[i] = amount;
-      return image;
+    const { definePixelEffect, number } = await import("/src/pixelable/effects.mjs");
+    definePixelEffect(
+      "tint",
+      (image, params) => {
+        for (let i = 0; i < image.data.length; i += 4) image.data[i] = number(params.amount, 0);
+        return image;
+      },
+      { params: ["amount"] },
+    );
+  });
+  await expect.poll(() => read("attr"), "the attribute form, once defined").toBe("200,0,0");
+  await expect.poll(() => read("el"), "the element form <pixel-tint>, upgraded in place").toBe("120,0,0");
+});
+
+test("a stateful effect element: extend PixelEffect, and invalidate() redraws", async ({ page }) => {
+  await setup(page, `<pixel-canvas id="p"><pixel-stateful id="t"><canvas data-source></canvas></pixel-stateful></pixel-canvas>`, [["#000"]]);
+  await page.evaluate(async () => {
+    const { PixelEffect } = await import("/src/pixelable/effects.mjs");
+    customElements.define("pixel-stateful", class extends PixelEffect {
+      amount = 0;
+      apply(image) {
+        for (let i = 0; i < image.data.length; i += 4) image.data[i + 1] = this.amount;
+        return image;
+      }
     });
     document.getElementById("p").render();
   });
@@ -143,10 +172,81 @@ test("custom effects: definePixelFilter, and invalidate() redraws", async ({ pag
   expect(await read()).toBe("0,0,0");
   await page.evaluate(() => {
     const t = document.getElementById("t");
-    t.amount = 200; // a property: the canvas can't see it...
+    t.amount = 90; // a property: the canvas can't see it...
     t.invalidate(); // ...until asked
   });
-  await expect.poll(read).toBe("200,0,0");
+  await expect.poll(read).toBe("0,90,0");
+});
+
+test.describe("the effects attribute", () => {
+  test("runs left to right, after any effect elements, and matches the element form", async ({ page }) => {
+    await setup(
+      page,
+      `<pixel-canvas id="attr-order" effects="mosaic(2) palette(1bit)"><canvas data-source></canvas></pixel-canvas>
+       <pixel-canvas id="attr-reversed" effects="palette(1bit) mosaic(2)"><canvas data-source></canvas></pixel-canvas>
+       <pixel-canvas id="mixed" effects="palette(1bit)"><pixel-mosaic size="2"><canvas data-source></canvas></pixel-mosaic></pixel-canvas>`,
+      CHECKER,
+    );
+    const first = (id) => page.evaluate((id) => window.pixels(document.getElementById(id))[0][0], id);
+    expect(await first("attr-order"), "mosaic then palette: gray rounds to white").toBe("255,255,255");
+    expect(await first("attr-reversed"), "palette then mosaic: gray").toBe("128,128,128");
+    expect(await first("mixed"), "the element (inside) runs before the attribute").toBe("255,255,255");
+  });
+
+  test("named and positional parameters, repeats, and colors with spaces", async ({ page }) => {
+    const white = Array.from({ length: 4 }, () => Array(4).fill("#fff"));
+    await setup(
+      page,
+      `<pixel-canvas id="named" effects="grid(color rgb(255 0 0), size 2)"><canvas data-source></canvas></pixel-canvas>
+       <pixel-canvas id="positional" effects="grid(2, rgb(255 0 0))"><canvas data-source></canvas></pixel-canvas>
+       <pixel-canvas id="element"><pixel-grid size="2" color="rgb(255 0 0)"><canvas data-source></canvas></pixel-grid></pixel-canvas>
+       <pixel-canvas id="repeated" effects="mosaic(1) palette(#000 #fff) palette(gameboy)"><canvas data-source></canvas></pixel-canvas>`,
+      white,
+    );
+    const all = await page.evaluate(() => Object.fromEntries(["named", "positional", "element", "repeated"].map((id) => [id, window.pixels(document.getElementById(id))])));
+    expect(all.named).toEqual(all.element);
+    expect(all.positional).toEqual(all.element);
+    expect(all.named[1]).toEqual(["255,0,0", "255,255,255", "255,0,0", "255,255,255"]);
+    expect(all.repeated[0][0], "white, then the lightest Game Boy green").toBe("155,188,15");
+  });
+
+  test("an unknown effect is skipped, reported once with error, and the rest still run", async ({ page }) => {
+    await setup(page, `<pixel-canvas id="p" effects="nope(1) palette(#f00)"><canvas data-source></canvas></pixel-canvas>`, [["#fff"]]);
+    const result = await page.evaluate(async () => {
+      const p = document.getElementById("p");
+      const errors = [];
+      p.addEventListener("error", (e) => errors.push(e.message));
+      p.setAttribute("effects", "other(1) palette(#f00)");
+      p.render();
+      p.render();
+      await new Promise((r) => setTimeout(r));
+      return { errors, pixel: window.pixels(p)[0][0], failed: p.hasAttribute("data-failed") };
+    });
+    expect(result.pixel).toBe("255,0,0");
+    expect(result.failed).toBe(false);
+    expect(result.errors).toEqual(['No pixel effect named "other" (define it with definePixelEffect)']);
+  });
+
+  test("the effects property mirrors the attribute and redraws", async ({ page }) => {
+    await setup(page, `<pixel-canvas id="p"><canvas data-source></canvas></pixel-canvas>`, [["#fff"]]);
+    await page.evaluate(() => (document.getElementById("p").effects = "palette(#00f)"));
+    expect(await page.evaluate(() => document.getElementById("p").getAttribute("effects"))).toBe("palette(#00f)");
+    await expect.poll(() => page.evaluate(() => window.pixels(document.getElementById("p"))[0][0])).toBe("0,0,255");
+  });
+
+  test("parseEffects handles nesting, bare names, and odd spacing", async ({ page }) => {
+    await mount(page, "", MODULES);
+    const parsed = await page.evaluate(async () => {
+      const { parseEffects } = await import("/src/pixelable/effects.mjs");
+      return parseEffects("  mosaic( 4 )palette(rgb(0 0 0) white, ordered)   outline  grid()");
+    });
+    expect(parsed).toEqual([
+      { name: "mosaic", args: ["4"] },
+      { name: "palette", args: ["rgb(0 0 0) white", "ordered"] },
+      { name: "outline", args: [] },
+      { name: "grid", args: [] },
+    ]);
+  });
 });
 
 test("an <img> source draws when it loads, fires load, and names the result from alt", async ({ page }) => {
@@ -189,22 +289,6 @@ test("a playing video is redrawn every frame", async ({ page }) => {
   await mount(page, `<canvas id="feed" width="4" height="4"></canvas><pixel-canvas id="p"><video muted playsinline></video></pixel-canvas>`, MODULES);
   const supported = await page.evaluate(() => typeof HTMLCanvasElement.prototype.captureStream === "function");
   test.skip(!supported, "no canvas.captureStream() in this engine");
-  // Some engine builds (WebKit on Linux CI) can't play a canvas stream at
-  // all: video.play() never settles. Skip there rather than time out.
-  const plays = await page.evaluate(async () => {
-    const feed = document.getElementById("feed");
-    const context = feed.getContext("2d");
-    context.fillStyle = "red";
-    context.fillRect(0, 0, 4, 4); // a stream has no frames until something is drawn
-    const video = document.querySelector("video");
-    video.srcObject = feed.captureStream(30);
-    const tick = setInterval(() => context.fillRect(0, 0, 4, 4), 30);
-    const started = await Promise.race([video.play().then(() => true, () => false), new Promise((r) => setTimeout(() => r(false), 3000))]);
-    clearInterval(tick);
-    video.pause();
-    return started;
-  });
-  test.skip(!plays, "this engine can't play a canvas stream here");
   const result = await page.evaluate(async () => {
     const feed = document.getElementById("feed");
     const context = feed.getContext("2d");
@@ -213,21 +297,29 @@ test("a playing video is redrawn every frame", async ({ page }) => {
       context.fillStyle = `hsl(${(hue += 40)} 100% 50%)`;
       context.fillRect(0, 0, 4, 4);
     };
-    paintFeed();
+    paintFeed(); // a stream has no frames until something is drawn
+    const ticker = setInterval(paintFeed, 50);
     const video = document.querySelector("video");
     video.srcObject = feed.captureStream(30);
-    await video.play();
+    // Some engine builds (WebKit on Linux CI) can't play a canvas stream:
+    // play() never settles. Report that rather than time out.
+    const plays = await Promise.race([video.play().then(() => true, () => false), new Promise((r) => setTimeout(() => r(false), 3000))]);
+    if (!plays) {
+      clearInterval(ticker);
+      return { plays };
+    }
     const p = document.getElementById("p");
     const seen = new Set();
     for (let i = 0; i < 20; i++) {
-      paintFeed();
       await new Promise((r) => setTimeout(r, 50));
       if (p.canvas.width) seen.add([...p.canvas.getContext("2d").getImageData(0, 0, 1, 1).data].join());
     }
+    clearInterval(ticker);
     video.pause();
-    return seen.size;
+    return { plays, frames: seen.size };
   });
-  expect(result).toBeGreaterThan(2);
+  test.skip(!result.plays, "this engine can't play a canvas stream here");
+  expect(result.frames).toBeGreaterThan(2);
 });
 
 test("toBlob gives the result as a PNG; survives a move and every creation path", async ({ page }) => {
@@ -245,4 +337,111 @@ test("toBlob gives the result as a PNG; survives a move and every creation path"
     return { type: blob.type, movedDraws: p.render(), built: window.pixels(built)[0][0] };
   });
   expect(result).toEqual({ type: "image/png", movedDraws: true, built: "0,0,255" });
+});
+
+test.describe("the newer effects", () => {
+  const pixel = (page, id, x = 0, y = 0) =>
+    page.evaluate(([id, x, y]) => {
+      const canvas = document.getElementById(id).canvas;
+      return [...canvas.getContext("2d").getImageData(x, y, 1, 1).data];
+    }, [id, x, y]);
+
+  test("adjust: brightness, contrast, saturation, and hue", async ({ page }) => {
+    await setup(
+      page,
+      `<pixel-canvas id="dark" effects="adjust(brightness 0)"><canvas data-source></canvas></pixel-canvas>
+       <pixel-canvas id="flat" effects="adjust(contrast 0)"><canvas data-source></canvas></pixel-canvas>
+       <pixel-canvas id="gray" effects="adjust(saturation 0)"><canvas data-source></canvas></pixel-canvas>
+       <pixel-canvas id="turned" effects="adjust(hue 180)"><canvas data-source></canvas></pixel-canvas>
+       <pixel-canvas id="positional" effects="adjust(1, 1, 0)"><canvas data-source></canvas></pixel-canvas>`,
+      [["#f00"]],
+    );
+    expect(await pixel(page, "dark")).toEqual([0, 0, 0, 255]);
+    expect(await pixel(page, "flat")).toEqual([128, 128, 128, 255]);
+    const [r, g, b] = await pixel(page, "gray");
+    expect(r).toBe(g);
+    expect(g).toBe(b);
+    const [tr, tg, tb] = await pixel(page, "turned");
+    expect(tg > tr && tb > tr, "red turned toward cyan").toBe(true);
+    expect(await pixel(page, "positional"), "positional: brightness, contrast, saturation").toEqual(await pixel(page, "gray"));
+  });
+
+  test("halftone: dark areas become ink dots on paper; ink=auto keeps the color", async ({ page }) => {
+    const rows = Array.from({ length: 12 }, () => Array(12).fill("#000"));
+    await setup(
+      page,
+      `<pixel-canvas id="black" effects="halftone(6, 0)"><canvas data-source></canvas></pixel-canvas>
+       <pixel-canvas id="colored" effects="halftone(6, 0, auto, white)"><canvas data-source data-red></canvas></pixel-canvas>`,
+      rows,
+    );
+    await page.evaluate(() => {
+      const red = document.querySelector("[data-red]");
+      window.paint(red, Array.from({ length: 12 }, () => Array(12).fill("rgb(128 0 0)")));
+      document.getElementById("colored").render();
+    });
+    const share = (id, color) =>
+      page.evaluate(([id, color]) => {
+        const flat = window.pixels(document.getElementById(id)).flat();
+        return flat.filter((p) => p === color).length / flat.length;
+      }, [id, color]);
+    expect(await share("black", "0,0,0"), "black: dots cover nearly everything").toBeGreaterThan(0.85);
+    expect(await pixel(page, "black", 3, 3), "a cell's center is ink").toEqual([0, 0, 0, 255]);
+    expect(await pixel(page, "colored", 3, 3), "auto ink: the cell's color").toEqual([128, 0, 0, 255]);
+    expect(await pixel(page, "colored", 0, 0), "a corner of a mid-tone cell is paper").toEqual([255, 255, 255, 255]);
+  });
+
+  test("outline: lines where brightness changes, paper elsewhere (or the image, with paper none)", async ({ page }) => {
+    const rows = Array.from({ length: 6 }, () => ["#fff", "#fff", "#fff", "#000", "#000", "#000"]);
+    await setup(
+      page,
+      `<pixel-canvas id="o" effects="outline()"><canvas data-source></canvas></pixel-canvas>
+       <pixel-canvas id="over" effects="outline(0.2, red, none)"><canvas data-source></canvas></pixel-canvas>`,
+      rows,
+    );
+    const row = await page.evaluate(() => window.pixels(document.getElementById("o"))[2]);
+    expect(row).toEqual(["255,255,255", "255,255,255", "0,0,0", "0,0,0", "255,255,255", "255,255,255"]);
+    const over = await page.evaluate(() => window.pixels(document.getElementById("over"))[2]);
+    expect(over).toEqual(["255,255,255", "255,255,255", "255,0,0", "255,0,0", "0,0,0", "0,0,0"]);
+  });
+
+  test("crt: darker alternate rows and a color stripe per column", async ({ page }) => {
+    const rows = Array.from({ length: 2 }, () => Array(3).fill("#fff"));
+    await setup(page, `<pixel-canvas id="p" effects="crt(0.5, 0.5, 1)"><canvas data-source></canvas></pixel-canvas>`, rows);
+    expect(await page.evaluate(() => window.pixels(document.getElementById("p")))).toEqual([
+      ["255,128,128", "128,255,128", "128,128,255"],
+      ["128,64,64", "64,128,64", "64,64,128"],
+    ]);
+  });
+
+  test("chroma-key: the key color becomes transparent, others stay", async ({ page }) => {
+    await setup(page, `<pixel-canvas id="p" effects="chroma-key(lime, 0.2, 0)"><canvas data-source></canvas></pixel-canvas>`, [["lime", "rgb(20 240 20)", "red"]]);
+    expect([(await pixel(page, "p", 0))[3], (await pixel(page, "p", 1))[3], (await pixel(page, "p", 2))[3]]).toEqual([0, 0, 255]);
+  });
+
+  test("every built-in effect gives the same pixels as an element and as a function", async ({ page }) => {
+    const cases = [
+      ["mosaic", { size: "2" }],
+      ["palette", { colors: "gameboy", dither: "ordered" }],
+      ["grid", { size: "3", color: "red" }],
+      ["adjust", { contrast: "1.5", saturation: "0.5", hue: "30" }],
+      ["halftone", { size: "4", angle: "30" }],
+      ["outline", { threshold: "0.1" }],
+      ["crt", { scanlines: "0.4" }],
+      ["chroma-key", { color: "white", tolerance: "0.2" }],
+    ];
+    const rows = Array.from({ length: 8 }, (_, y) => Array.from({ length: 8 }, (_, x) => `hsl(${(x * 45 + y * 20) % 360} 70% ${30 + y * 6}%)`));
+    const html = cases
+      .map(([name, params]) => {
+        const attrs = Object.entries(params).map(([k, v]) => `${k}="${v}"`).join(" ");
+        const call = `${name}(${Object.entries(params).map(([k, v]) => `${k} ${v}`).join(", ")})`;
+        return `<pixel-canvas id="fn-${name}" effects="${call}"><canvas data-source></canvas></pixel-canvas>
+                <pixel-canvas id="el-${name}"><pixel-${name} ${attrs}><canvas data-source></canvas></pixel-${name}></pixel-canvas>`;
+      })
+      .join("");
+    await setup(page, html, rows);
+    const mismatches = await page.evaluate((names) => names.filter((name) =>
+      JSON.stringify(window.pixels(document.getElementById(`fn-${name}`))) !== JSON.stringify(window.pixels(document.getElementById(`el-${name}`))),
+    ), cases.map(([name]) => name));
+    expect(mismatches).toEqual([]);
+  });
 });

@@ -6,9 +6,11 @@
 export default class PixelCanvas extends HTMLElement {
   /** The image, video, or canvas being drawn: the first one inside. */
   readonly source: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement | null;
-  /** The effect elements applied to the source, in the order they run
+  /** The effect elements wrapped around the source, in the order they run
    * (innermost first). Disabled ones are included. */
-  readonly effects: Element[];
+  readonly effectElements: Element[];
+  /** Mirrors the `effects` attribute. */
+  effects: string;
   /** The canvas showing the result (in the shadow root). */
   readonly canvas: HTMLCanvasElement;
   /** Draw now, instead of on the next frame. Returns whether it drew. */

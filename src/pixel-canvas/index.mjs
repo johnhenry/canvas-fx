@@ -1,5 +1,10 @@
-// <pixel-canvas>: run an image, video, or canvas through the pixel effects
-// wrapped around it, and show the result.
+// <pixel-canvas>: run an image, video, or canvas through pixel effects,
+// and show the result. Effects are listed in the `effects` attribute, like
+// CSS `filter`, and/or wrapped around the source as elements:
+//
+//   <pixel-canvas width="160" effects="mosaic(4) palette(gameboy, ordered)">
+//     <img src="photo.jpg" alt="Our cat" />
+//   </pixel-canvas>
 //
 //   <pixel-canvas width="160">                       <- draws the result
 //     <pixel-palette colors="gameboy" dither="ordered"> <- 2. then this
@@ -9,11 +14,15 @@
 //     </pixel-palette>
 //   </pixel-canvas>
 //
-// Effects apply from the inside out, the way the markup reads. The
+// Effect elements apply from the inside out, then the attribute's list,
+// left to right. The
 // light-DOM content stays in the document (so the image loads and stays
 // the source of truth) but isn't displayed: a canvas in this element's
 // shadow root is. Before this element is defined, or if the source can't
 // be read, the original content shows instead. See readme.md.
+
+import "../builtins.mjs";
+import { effectRegistry, getPixelEffect, parseEffects, resolveParams } from "../effects.mjs";
 
 const SOURCES = "img, video, canvas";
 const setAttr = (element, name, value) => {
@@ -29,14 +38,15 @@ const setAttr = (element, name, value) => {
  *
  * @attr {number} width - Working width in pixels: the source is scaled to it (keeping its aspect ratio) before the effects run. Smaller is faster and chunkier. Default: the source's own width.
  * @attr {number} height - Working height, if `width` isn't given.
+ * @attr {string} effects - Effects to apply, in order, like CSS `filter`: `mosaic(4) palette(gameboy, ordered) adjust(contrast 1.3)`. They run after any effect elements inside.
  *
  * @fires load - The first frame of a source was drawn.
- * @fires error - The source can't be read (for example, a cross-origin image without CORS) or an effect threw. An `ErrorEvent`; the original content is shown instead.
+ * @fires error - The source can't be read (for example, a cross-origin image without CORS) or an effect threw: an `ErrorEvent`, and the original content is shown instead. Also fired, once per name, for an unknown effect in `effects`, which is skipped.
  *
  * @csspart canvas - The `<canvas>` showing the result.
  */
 export default class PixelCanvas extends HTMLElement {
-  static observedAttributes = ["width", "height"];
+  static observedAttributes = ["width", "height", "effects"];
 
   #canvas;
   #slot;
@@ -57,6 +67,9 @@ export default class PixelCanvas extends HTMLElement {
     this.#schedule();
   };
   #onPixelChange = () => this.#schedule();
+  #reportedUnknown = new Set();
+  // An effect defined after this element drew may be one it's waiting on.
+  #onDefine = () => this.#schedule();
 
   constructor() {
     super();
@@ -78,12 +91,14 @@ export default class PixelCanvas extends HTMLElement {
 
   connectedCallback() {
     this.addEventListener("pixelchange", this.#onPixelChange);
+    effectRegistry.addEventListener("define", this.#onDefine);
     this.#observer.observe(this, { childList: true, subtree: true, attributes: true });
     this.#schedule();
   }
 
   disconnectedCallback() {
     this.removeEventListener("pixelchange", this.#onPixelChange);
+    effectRegistry.removeEventListener("define", this.#onDefine);
     this.#observer.disconnect();
     cancelAnimationFrame(this.#scheduled);
     this.#scheduled = 0;
@@ -105,17 +120,28 @@ export default class PixelCanvas extends HTMLElement {
   }
 
   /**
-   * The effect elements applied to the source, in the order they run
+   * The effect elements wrapped around the source, in the order they run
    * (innermost first). Disabled ones are included.
    * @type {Element[]}
    * @readonly
    */
-  get effects() {
+  get effectElements() {
     const effects = [];
     for (let element = this.source?.parentElement; element && element !== this; element = element.parentElement) {
       if (typeof element.apply === "function") effects.push(element);
     }
     return effects;
+  }
+
+  /**
+   * Mirrors the `effects` attribute.
+   * @type {string}
+   */
+  get effects() {
+    return this.getAttribute("effects") ?? "";
+  }
+  set effects(value) {
+    this.setAttribute("effects", value);
   }
 
   /**
@@ -229,9 +255,18 @@ export default class PixelCanvas extends HTMLElement {
       work.imageSmoothingEnabled = true;
       work.drawImage(source, 0, 0, width, height);
       let image = work.getImageData(0, 0, width, height);
-      for (const effect of this.effects) {
+      for (const effect of this.effectElements) {
         if (effect.hasAttribute("disabled")) continue;
         const result = effect.apply(image);
+        if (result instanceof ImageData) image = result;
+      }
+      for (const { name, args } of parseEffects(this.getAttribute("effects"))) {
+        const effect = getPixelEffect(name);
+        if (!effect) {
+          this.#unknown(name);
+          continue;
+        }
+        const result = effect.apply(image, resolveParams(effect, args));
         if (result instanceof ImageData) image = result;
       }
       if (this.#canvas.width !== image.width) this.#canvas.width = image.width;
@@ -251,6 +286,13 @@ export default class PixelCanvas extends HTMLElement {
     return true;
   }
   #loadedSrc = null;
+
+  #unknown(name) {
+    if (this.#reportedUnknown.has(name)) return;
+    this.#reportedUnknown.add(name);
+    const error = new ReferenceError(`No pixel effect named "${name}" (define it with definePixelEffect)`);
+    queueMicrotask(() => this.dispatchEvent(new ErrorEvent("error", { error, message: error.message })));
+  }
 
   // Show the original content, and say why, once per failure.
   #fail(error) {

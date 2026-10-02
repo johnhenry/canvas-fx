@@ -1,8 +1,9 @@
 # pixel-mosaic
 
 A pixel effect that pixelates: each `size`×`size` block of the image
-becomes its average color. Use it inside a
-[`<pixel-canvas>`](../pixel-canvas/readme.md). Part of
+becomes its average color. Use it as `mosaic(size)` in a
+[`<pixel-canvas>`](../pixel-canvas/readme.md)'s `effects`, or as this
+element wrapped around the source. Part of
 [pixelable](../readme.md).
 
 ## Usage
@@ -10,6 +11,11 @@ becomes its average color. Use it inside a
 ```html
 <script type="module" src="https://esm.sh/@johnhenry/domkit/pixelable/global.mjs"></script>
 
+<pixel-canvas effects="mosaic(12)">
+  <img src="screenshot.png" alt="A screenshot, pixelated for privacy" />
+</pixel-canvas>
+
+<!-- or, as an element -->
 <pixel-canvas>
   <pixel-mosaic size="12">
     <img src="screenshot.png" alt="A screenshot, pixelated for privacy" />
@@ -25,20 +31,8 @@ becomes its average color. Use it inside a
 
 | Attribute | Property | Type | Description |
 |---|---|---|---|
-| `size` | `size` | `number` | Block size, in the working image's pixels. Default 8. |
+| `size` |  | `number` | Block size, in the working image's pixels. Default 8. |
 | `disabled` |  | `boolean` | Pass the image through unchanged. |
-
-### Properties
-
-| Property | Type | Description |
-|---|---|---|
-| `size` | `number` | Block size. Mirrors the `size` attribute. |
-
-### Methods
-
-| Method | Description |
-|---|---|
-| `apply(image)` |  |
 
 <!-- api:end -->
 

@@ -1,22 +1,27 @@
 # pixel-canvas
 
-Draws an image, video, or canvas through the
-[pixel effects](../readme.md) wrapped around it. The first `<img>`,
-`<video>`, or `<canvas>` inside is the source, and every effect element
-between it and the `<pixel-canvas>` is applied, innermost first. Part of
-[pixelable](../readme.md).
+Draws an image, video, or canvas through [pixel effects](../readme.md),
+listed in its `effects` attribute like CSS `filter`, or wrapped around the
+source as elements. The first `<img>`, `<video>`, or `<canvas>` inside is
+the source. Part of [pixelable](../readme.md).
 
 ## Usage
 
 ```html
 <script type="module" src="https://esm.sh/@johnhenry/domkit/pixelable/global.mjs"></script>
 
-<pixel-canvas width="120">
-  <pixel-palette colors="1bit" dither="floyd-steinberg">
-    <img src="portrait.jpg" alt="A portrait, dithered" />
-  </pixel-palette>
+<pixel-canvas width="120" effects="adjust(contrast 1.2) palette(1bit, floyd-steinberg)">
+  <img src="portrait.jpg" alt="A portrait, dithered" />
 </pixel-canvas>
 ```
+
+## Effects
+
+`effects` lists effects to run left to right, each as `name(…)` with its
+parameters in order or by name (see the [effects table](../readme.md#effects)).
+Effect elements wrapped around the source run first, innermost first, and
+`effectElements` lists them. An unknown name is skipped, and reported once
+with an `error` event; if it's defined later, the canvas redraws.
 
 ## Drawing
 
@@ -32,8 +37,8 @@ It redraws, at most once a frame:
   `loadeddata` and `seeked`;
 - on every new frame while a `<video>` plays (with
   `requestVideoFrameCallback` where available);
-- when anything inside changes: an effect's attributes, effects added or
-  removed, a different source;
+- when `effects`, `width`, or `height` changes, or anything inside does:
+  an effect's attributes, effects added or removed, a different source;
 - when an effect calls `invalidate()`, or you call `render()` (which draws
   now and returns whether it could).
 
@@ -59,13 +64,15 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 |---|---|---|---|
 | `width` | `width` | `number` | Working width in pixels: the source is scaled to it (keeping its aspect ratio) before the effects run. Smaller is faster and chunkier. Default: the source's own width. |
 | `height` | `height` | `number` | Working height, if `width` isn't given. |
+| `effects` | `effects` | `string` | Effects to apply, in order, like CSS `filter`: `mosaic(4) palette(gameboy, ordered) adjust(contrast 1.3)`. They run after any effect elements inside. |
 
 ### Properties
 
 | Property | Type | Description |
 |---|---|---|
 | `source` (read-only) | `HTMLImageElement \| HTMLVideoElement \| HTMLCanvasElement \| null` | The image, video, or canvas being drawn: the first one inside. |
-| `effects` (read-only) | `Element[]` | The effect elements applied to the source, in the order they run (innermost first). Disabled ones are included. |
+| `effectElements` (read-only) | `Element[]` | The effect elements wrapped around the source, in the order they run (innermost first). Disabled ones are included. |
+| `effects` | `string` | Mirrors the `effects` attribute. |
 | `canvas` (read-only) | `HTMLCanvasElement` | The canvas showing the result (in the shadow root). |
 | `width` | `number` | Mirrors the `width` attribute. |
 | `height` | `number` | Mirrors the `height` attribute. |
@@ -83,7 +90,7 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 | Event | Description |
 |---|---|
 | `load` | The first frame of a source was drawn. |
-| `error` | The source can't be read (for example, a cross-origin image without CORS) or an effect threw. An `ErrorEvent`; the original content is shown instead. |
+| `error` | The source can't be read (for example, a cross-origin image without CORS) or an effect threw: an `ErrorEvent`, and the original content is shown instead. Also fired, once per name, for an unknown effect in `effects`, which is skipped. |
 
 <!-- api:end -->
 
@@ -106,5 +113,4 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
   the original image unchanged.
 - `load` fires once per source (and per new `src`), after its first
   frame is drawn, not on every redraw.
-- An effect is any element with an `apply(image)` method; see
-  [writing an effect](../readme.md#writing-an-effect).
+- Your own effects: see [Your own effects](../readme.md#your-own-effects).
