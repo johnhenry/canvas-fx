@@ -605,3 +605,112 @@ test.describe("pixel-sprite", () => {
     await expect.poll(() => read().then((r) => [r.left, r.right])).toEqual(["255,0,0", "0,0,0"]);
   });
 });
+
+test.describe("effects over time", () => {
+  test("effects get { time, frame }; fps redraws a still image; paused freezes the clock", async ({ page }) => {
+    await setup(page, `<pixel-canvas id="p" fps="30" effects="clockwork()"><canvas data-source></canvas></pixel-canvas>`, [["#000"]]);
+    const result = await page.evaluate(async () => {
+      const { definePixelEffect } = await import("/src/pixelable/effects.mjs");
+      const seen = [];
+      definePixelEffect("clockwork", (image, params, { time, frame }) => {
+        seen.push({ time, frame });
+        return image;
+      });
+      await new Promise((r) => setTimeout(r, 400));
+      const p = document.getElementById("p");
+      const running = seen.length;
+      const events = [];
+      for (const type of ["play", "pause"]) p.addEventListener(type, () => events.push(type));
+      p.pause();
+      const frozenAt = p.time;
+      const countAtPause = seen.length;
+      await new Promise((r) => setTimeout(r, 200));
+      const stillFrozen = p.time === frozenAt && seen.length === countAtPause;
+      p.render();
+      const renderedTime = seen.at(-1).time;
+      p.removeAttribute("paused");
+      await new Promise((r) => setTimeout(r, 100));
+      return {
+        running,
+        increasing: seen.slice(0, running).every((s, i, all) => i === 0 || (s.time >= all[i - 1].time && s.frame === all[i - 1].frame + 1)),
+        stillFrozen,
+        renderedTime: Math.abs(renderedTime - frozenAt) < 1e-9,
+        resumed: p.time > frozenAt,
+        events,
+      };
+    });
+    expect(result.running).toBeGreaterThan(5);
+    expect(result.increasing).toBe(true);
+    expect(result.stillFrozen).toBe(true);
+    expect(result.renderedTime).toBe(true);
+    expect(result.resumed).toBe(true);
+    expect(result.events).toEqual(["pause", "play"]);
+  });
+
+  test("glitch is repeatable for a moment of the clock and changes with it; amount 0 is a no-op", async ({ page }) => {
+    await mount(page, "", MODULES);
+    const result = await page.evaluate(async () => {
+      const glitch = await import("/src/pixelable/pixel-glitch/effect.mjs");
+      const make = () => {
+        const image = new ImageData(32, 32);
+        for (let i = 0; i < image.data.length; i += 4) image.data.set([(i / 4) % 32 * 8, (i / 128) * 8, 128, 255], i);
+        return image;
+      };
+      const run = (time, amount = "0.8") => [...glitch.apply(make(), { amount }, { time }).data].join();
+      return {
+        repeatable: run(1.0) === run(1.01),
+        changes: run(1.0) !== run(2.0),
+        none: run(1.0, "0") === [...make().data].join(),
+        broken: run(1.0) !== [...make().data].join(),
+      };
+    });
+    expect(result).toEqual({ repeatable: true, changes: true, none: true, broken: true });
+  });
+
+  test("wave slides rows along a sine wave that moves with time", async ({ page }) => {
+    await mount(page, "", MODULES);
+    const result = await page.evaluate(async () => {
+      const wave = await import("/src/pixelable/pixel-wave/effect.mjs");
+      const make = () => {
+        const image = new ImageData(9, 4);
+        for (let y = 0; y < 4; y++) image.data.set([255, 255, 255, 255], (y * 9 + 4) * 4); // a white column at x=4
+        return image;
+      };
+      const column = (image) => [0, 1, 2, 3].map((y) => [...Array(9).keys()].find((x) => image.data[(y * 9 + x) * 4] === 255));
+      return {
+        still: column(wave.apply(make(), { amplitude: "2", wavelength: "4", speed: "0" }, { time: 0 })),
+        later: column(wave.apply(make(), { amplitude: "2", wavelength: "4", speed: "1" }, { time: 0.25 })),
+      };
+    });
+    expect(result.still).toEqual([4, 6, 4, 2]);
+    expect(result.later, "a quarter wave on").toEqual([6, 4, 2, 4]);
+  });
+
+  test("reduced motion: the clock waits for play()", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await setup(page, `<pixel-canvas id="p" fps="30" effects="wave(4)"><canvas data-source></canvas></pixel-canvas>`, [["#000"]]);
+    const times = await page.evaluate(async () => {
+      const p = document.getElementById("p");
+      await new Promise((r) => setTimeout(r, 200));
+      const before = p.time;
+      p.play();
+      await new Promise((r) => setTimeout(r, 200));
+      return [before, p.time > 0.1];
+    });
+    expect(times).toEqual([0, true]);
+  });
+
+  test("commands drive the clock", async ({ page }) => {
+    await setup(page, `<pixel-canvas id="p"><canvas data-source></canvas></pixel-canvas>`, [["#000"]]);
+    const states = await page.evaluate(() => {
+      const p = document.getElementById("p");
+      const send = (command) => p.dispatchEvent(Object.assign(new Event("command"), { command }));
+      send("--pause");
+      const a = p.paused;
+      send("--toggle");
+      const b = p.paused;
+      return [a, b];
+    });
+    expect(states).toEqual([true, false]);
+  });
+});

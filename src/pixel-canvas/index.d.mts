@@ -4,6 +4,16 @@
 /** Draws its source image, video, or canvas through the pixel effects
  * wrapped around it. */
 export default class PixelCanvas extends HTMLElement {
+  /** Seconds on the clock that effects animate by. It runs while the
+   * element is connected and not paused (and, for visitors who prefer
+   * reduced motion, only once `play()` is called). */
+  readonly time: number;
+  /** Whether the clock is paused. */
+  readonly paused: boolean;
+  /** Start or resume the clock (and the `fps` redraws). */
+  play(): void;
+  /** Pause the clock where it is. */
+  pause(): void;
   /** The image, video, canvas, or `<pixel-sprite>` being drawn: the first
    * one inside. */
   readonly source: Element | null;
