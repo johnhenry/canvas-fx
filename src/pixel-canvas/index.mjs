@@ -107,7 +107,8 @@ export default class PixelCanvas extends HTMLElement {
   connectedCallback() {
     this.addEventListener("pixelchange", this.#onPixelChange);
     effectRegistry.addEventListener("define", this.#onDefine);
-    this.#observer.observe(this, { childList: true, subtree: true, attributes: true });
+    // characterData too: editing a <pixel-shader>'s code or a sprite's text.
+    this.#observer.observe(this, { childList: true, subtree: true, attributes: true, characterData: true });
     this.#runClock();
     this.#schedule();
   }
