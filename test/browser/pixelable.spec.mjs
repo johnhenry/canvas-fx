@@ -782,3 +782,45 @@ test.describe("shaders", () => {
     expect(result.failed).toBe(true);
   });
 });
+
+test.describe("custom sources", () => {
+  const DEFINE = () => {
+    // A source of its own: draws on a canvas it exposes, fires framechange.
+    customElements.define("test-drawing", class extends HTMLElement {
+      canvas = Object.assign(document.createElement("canvas"), { width: 2, height: 1 });
+      paint(color) {
+        const context = this.canvas.getContext("2d");
+        context.fillStyle = color;
+        context.fillRect(0, 0, 2, 1);
+        this.dispatchEvent(new Event("framechange"));
+      }
+      connectedCallback() {
+        this.paint("#f00");
+      }
+    });
+  };
+
+  test("any element exposing a canvas is a source, redrawn on framechange, through effects", async ({ page }) => {
+    await mount(page, "", MODULES);
+    await page.evaluate(DEFINE);
+    await page.evaluate(() => {
+      document.body.innerHTML = `<pixel-canvas id="p" effects="palette(#000 #00f)"><div><test-drawing id="d"></test-drawing></div></pixel-canvas>`;
+    });
+    const first = () => page.evaluate(() => {
+      const c = document.getElementById("p").canvas;
+      return c.width ? [...c.getContext("2d").getImageData(0, 0, 1, 1).data.slice(0, 3)].join() : null;
+    });
+    await expect.poll(first).toBe("0,0,0"); // red is nearer black than blue, by brightness
+    expect(await page.evaluate(() => document.getElementById("p").source.id)).toBe("d");
+    await page.evaluate(() => document.getElementById("d").paint("#33f"));
+    await expect.poll(first, "framechange redraws").toBe("0,0,255");
+  });
+
+  test("a custom source defined after the canvas is drawn once it's defined", async ({ page }) => {
+    await mount(page, `<pixel-canvas id="p"><test-drawing></test-drawing></pixel-canvas>`, MODULES);
+    await page.waitForTimeout(100);
+    expect(await page.evaluate(() => document.getElementById("p").canvas.width)).toBe(0);
+    await page.evaluate(DEFINE);
+    await expect.poll(() => page.evaluate(() => document.getElementById("p").canvas.width)).toBe(2);
+  });
+});

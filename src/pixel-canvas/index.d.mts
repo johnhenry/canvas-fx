@@ -14,8 +14,9 @@ export default class PixelCanvas extends HTMLElement {
   play(): void;
   /** Pause the clock where it is. */
   pause(): void;
-  /** The image, video, canvas, or `<pixel-sprite>` being drawn: the first
-   * one inside. */
+  /** What's being drawn: the first element inside that's an `<img>`,
+   * `<video>`, or `<canvas>`, or that exposes a `canvas` property (like
+   * `<pixel-sprite>`). */
   readonly source: Element | null;
   /** The effect elements wrapped around the source, in the order they run
    * (innermost first). Disabled ones are included. */

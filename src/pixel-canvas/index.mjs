@@ -25,7 +25,13 @@ import "../builtins.mjs";
 import { effectRegistry, getPixelEffect, parseEffects, resolveParams } from "../effects.mjs";
 import { dominantColors, toHex } from "../quantize.mjs";
 
-const SOURCES = "img, video, canvas, pixel-sprite";
+const NATIVE_SOURCES = ["img", "video", "canvas"];
+// Any element that draws itself on a canvas it exposes as `canvas` (and
+// fires `framechange` when it redraws) is a source too: <pixel-sprite>,
+// or your own game or visualization.
+const hasCanvas = (element) =>
+  element.canvas instanceof HTMLCanvasElement || (globalThis.OffscreenCanvas && element.canvas instanceof OffscreenCanvas);
+const isSource = (element) => NATIVE_SOURCES.includes(element.localName) || hasCanvas(element);
 const setAttr = (element, name, value) => {
   if (element.getAttribute(name) !== value) element.setAttribute(name, value);
 };
@@ -222,13 +228,18 @@ export default class PixelCanvas extends HTMLElement {
   #draws = 0;
 
   /**
-   * The image, video, canvas, or `<pixel-sprite>` being drawn: the first
-   * one inside.
+   * What's being drawn: the first element inside that's an `<img>`,
+   * `<video>`, or `<canvas>`, or that exposes a `canvas` property (like
+   * `<pixel-sprite>`).
    * @type {Element | null}
    * @readonly
    */
   get source() {
-    return this.querySelector(SOURCES);
+    const walker = document.createTreeWalker(this, NodeFilter.SHOW_ELEMENT);
+    for (let element = walker.nextNode(); element; element = walker.nextNode()) {
+      if (isSource(element)) return element;
+    }
+    return null;
   }
 
   /**
@@ -371,7 +382,7 @@ export default class PixelCanvas extends HTMLElement {
 
   // What drawImage draws: a sprite's own canvas, or the source itself.
   #drawable(source) {
-    return source.localName === "pixel-sprite" ? source.canvas : source;
+    return NATIVE_SOURCES.includes(source.localName) ? source : source.canvas;
   }
 
   #size(source) {
@@ -395,7 +406,10 @@ export default class PixelCanvas extends HTMLElement {
     const source = this.source;
     this.#bindSource(source);
     this.#label(source);
-    if (!source) return false;
+    if (!source) {
+      this.#awaitDefinitions();
+      return false;
+    }
     if (source instanceof HTMLImageElement && !source.complete) return false;
     const size = this.#size(source);
     if (!size) return false;
@@ -467,6 +481,21 @@ export default class PixelCanvas extends HTMLElement {
   }
   #palette = [];
   #swatched = new Set();
+
+  // A custom source isn't one until it's defined (no `canvas` yet): redraw
+  // when any undefined element inside is.
+  #awaitDefinitions() {
+    for (const element of this.querySelectorAll(":not(:defined)")) {
+      const tag = element.localName;
+      if (this.#awaiting.has(tag)) continue;
+      this.#awaiting.add(tag);
+      customElements.whenDefined(tag).then(() => {
+        this.#awaiting.delete(tag);
+        this.#schedule();
+      });
+    }
+  }
+  #awaiting = new Set();
 
   #unknown(name) {
     if (this.#reportedUnknown.has(name)) return;

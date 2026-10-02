@@ -46,6 +46,31 @@ It redraws, at most once a frame:
 The light-DOM content stays in the document, so an image keeps loading
 and a video keeps playing, but only the canvas is displayed.
 
+## Your own sources
+
+Besides `<img>`, `<video>`, and `<canvas>`, any element that exposes a
+`canvas` property (an `HTMLCanvasElement` or `OffscreenCanvas`) is a
+source: a game, a visualization, a sprite. Fire `framechange` on it when
+it redraws, and the `<pixel-canvas>` redraws too.
+[`<pixel-sprite>`](../pixel-sprite/readme.md) works this way.
+
+```js
+customElements.define("my-plasma", class extends HTMLElement {
+  canvas = Object.assign(document.createElement("canvas"), { width: 64, height: 64 });
+  draw() {
+    // …paint this.canvas…
+    this.dispatchEvent(new Event("framechange"));
+  }
+});
+```
+
+```html
+<pixel-canvas effects="palette(pico-8, ordered) crt()"><my-plasma></my-plasma></pixel-canvas>
+```
+
+The first such element inside (in document order) is the source. One
+that isn't defined yet becomes a source when it is.
+
 ## Animation
 
 Effects can change over time (`glitch()`, `wave()`, or your own): each one
@@ -120,7 +145,7 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 |---|---|---|
 | `time` (read-only) | `number` | Seconds on the clock that effects animate by. It runs while the element is connected and not paused (and, for visitors who prefer reduced motion, only once `play()` is called). |
 | `paused` (read-only) | `boolean` | Whether the clock is paused. |
-| `source` (read-only) | `Element \| null` | The image, video, canvas, or `<pixel-sprite>` being drawn: the first one inside. |
+| `source` (read-only) | `Element \| null` | What's being drawn: the first element inside that's an `<img>`, `<video>`, or `<canvas>`, or that exposes a `canvas` property (like `<pixel-sprite>`). |
 | `effectElements` (read-only) | `Element[]` | The effect elements wrapped around the source, in the order they run (innermost first). Disabled ones are included. |
 | `effects` | `string` | Mirrors the `effects` attribute. |
 | `swatches` | `number` | How many swatches to publish. Mirrors the `swatches` attribute. |
