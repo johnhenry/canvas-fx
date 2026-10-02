@@ -42,15 +42,21 @@ const setAttr = (element, name, value) => {
  * @attr {string} effects - Effects to apply, in order, like CSS `filter`: `mosaic(4) palette(gameboy, ordered) adjust(contrast 1.3)`. They run after any effect elements inside.
  * @attr {number} swatches - Publish the result's N most common colors as `--pixel-swatch-1` … `--pixel-swatch-N` custom properties (and the `palette` property). Default: none.
  * @attr {string} swatches-target - A selector for more elements to set those custom properties on (for example `html`, to theme the page). They're always set on the `<pixel-canvas>` itself.
+ * @attr {number} fps - Redraw at this rate, so effects that change over time (`glitch`, `wave`, your own) animate even on a still image. Without it, it redraws only when something changes (or every frame of a playing video).
+ * @attr {boolean} paused - Stops the clock effects animate by, and the `fps` redraws. Reflects; write it in markup to start paused.
  *
  * @fires load - The first frame of a source was drawn.
+ * @fires play - The clock started or resumed.
+ * @fires pause - The clock paused.
  * @fires palettechange - With `swatches`: the published colors changed.
  * @fires error - The source can't be read (for example, a cross-origin image without CORS) or an effect threw: an `ErrorEvent`, and the original content is shown instead. Also fired, once per name, for an unknown effect in `effects`, which is skipped.
  *
  * @csspart canvas - The `<canvas>` showing the result.
+ *
+ * Invoker commands: `--play`, `--pause`, `--toggle`.
  */
 export default class PixelCanvas extends HTMLElement {
-  static observedAttributes = ["width", "height", "effects", "swatches", "swatches-target"];
+  static observedAttributes = ["width", "height", "effects", "swatches", "swatches-target", "fps", "paused"];
 
   #canvas;
   #slot;
@@ -91,12 +97,18 @@ export default class PixelCanvas extends HTMLElement {
     this.#canvas.height = 0;
     this.#slot = document.createElement("slot");
     shadow.append(style, this.#canvas, this.#slot);
+    this.addEventListener("command", (event) => {
+      if (event.command === "--play") this.play();
+      else if (event.command === "--pause") this.pause();
+      else if (event.command === "--toggle") this.paused ? this.play() : this.pause();
+    });
   }
 
   connectedCallback() {
     this.addEventListener("pixelchange", this.#onPixelChange);
     effectRegistry.addEventListener("define", this.#onDefine);
     this.#observer.observe(this, { childList: true, subtree: true, attributes: true });
+    this.#runClock();
     this.#schedule();
   }
 
@@ -109,11 +121,104 @@ export default class PixelCanvas extends HTMLElement {
     this.#stopVideo();
     this.#bindSource(null);
     this.#publish([]); // take our custom properties back off the targets
+    this.#stopClock();
   }
 
-  attributeChangedCallback() {
-    if (this.isConnected) this.#schedule();
+  attributeChangedCallback(name, previous, current) {
+    if (!this.isConnected) return;
+    if (name === "paused") {
+      if (this.#reflecting) return;
+      // The attribute already changed, so act on it here.
+      if (current === null && previous !== null) {
+        this.#runClock({ force: true });
+        this.dispatchEvent(new Event("play", { bubbles: true }));
+      } else if (current !== null && previous === null) {
+        this.#stopClock();
+        this.dispatchEvent(new Event("pause", { bubbles: true }));
+      }
+      return;
+    }
+    if (name === "fps") this.#runClock();
+    this.#schedule();
   }
+
+  /**
+   * Seconds on the clock that effects animate by. It runs while the
+   * element is connected and not paused (and, for visitors who prefer
+   * reduced motion, only once `play()` is called).
+   * @type {number}
+   * @readonly
+   */
+  get time() {
+    return (this.#elapsed + (this.#startedAt === null ? 0 : performance.now() - this.#startedAt)) / 1000;
+  }
+
+  /**
+   * Whether the clock is paused.
+   * @type {boolean}
+   * @readonly
+   */
+  get paused() {
+    return this.hasAttribute("paused");
+  }
+
+  /** Start or resume the clock (and the `fps` redraws). */
+  play() {
+    const wasPaused = this.paused;
+    this.#setPaused(false);
+    this.#runClock({ force: true });
+    if (wasPaused) this.dispatchEvent(new Event("play", { bubbles: true }));
+  }
+
+  /** Pause the clock where it is. */
+  pause() {
+    const wasPaused = this.paused;
+    this.#setPaused(true);
+    this.#stopClock();
+    if (!wasPaused) this.dispatchEvent(new Event("pause", { bubbles: true }));
+  }
+
+  #setPaused(paused) {
+    this.#reflecting = true;
+    this.toggleAttribute("paused", paused);
+    this.#reflecting = false;
+  }
+
+  // The clock: elapsed time, plus a redraw loop at `fps`.
+  #runClock({ force = false } = {}) {
+    if (!this.isConnected || this.paused) return;
+    const reduced = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    if (force) this.#forced = true;
+    if (reduced && !this.#forced) return;
+    this.#startedAt ??= performance.now();
+    cancelAnimationFrame(this.#ticker);
+    this.#ticker = 0;
+    const fps = Number(this.getAttribute("fps"));
+    if (!(fps > 0)) return;
+    const period = 1000 / fps;
+    let last = 0;
+    const tick = (now) => {
+      if (now - last >= period - 8) {
+        last = now;
+        this.#draw();
+      }
+      this.#ticker = requestAnimationFrame(tick);
+    };
+    this.#ticker = requestAnimationFrame(tick);
+  }
+
+  #stopClock() {
+    cancelAnimationFrame(this.#ticker);
+    this.#ticker = 0;
+    if (this.#startedAt !== null) this.#elapsed += performance.now() - this.#startedAt;
+    this.#startedAt = null;
+  }
+  #elapsed = 0;
+  #startedAt = null;
+  #ticker = 0;
+  #forced = false;
+  #reflecting = false;
+  #draws = 0;
 
   /**
    * The image, video, canvas, or `<pixel-sprite>` being drawn: the first
@@ -302,9 +407,10 @@ export default class PixelCanvas extends HTMLElement {
       work.imageSmoothingEnabled = width < (drawable.naturalWidth || drawable.videoWidth || drawable.width);
       work.drawImage(drawable, 0, 0, width, height);
       let image = work.getImageData(0, 0, width, height);
+      const context = { time: this.time, frame: this.#draws++ };
       for (const effect of this.effectElements) {
         if (effect.hasAttribute("disabled")) continue;
-        const result = effect.apply(image);
+        const result = effect.apply(image, context);
         if (result instanceof ImageData) image = result;
       }
       for (const { name, args } of parseEffects(this.getAttribute("effects"))) {
@@ -313,7 +419,7 @@ export default class PixelCanvas extends HTMLElement {
           this.#unknown(name);
           continue;
         }
-        const result = effect.apply(image, resolveParams(effect, args));
+        const result = effect.apply(image, resolveParams(effect, args), context);
         if (result instanceof ImageData) image = result;
       }
       if (this.#canvas.width !== image.width) this.#canvas.width = image.width;

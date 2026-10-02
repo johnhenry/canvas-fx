@@ -46,6 +46,26 @@ It redraws, at most once a frame:
 The light-DOM content stays in the document, so an image keeps loading
 and a video keeps playing, but only the canvas is displayed.
 
+## Animation
+
+Effects can change over time (`glitch()`, `wave()`, or your own): each one
+gets the canvas's clock, `time`, in seconds. The canvas redraws whenever
+something changes and on every frame of a playing video or sprite. Add
+`fps` to redraw on a clock even for a still image:
+
+```html
+<pixel-canvas fps="24" effects="wave(3, 24) glitch(0.2)">
+  <img src="poster.jpg" alt="A poster" />
+</pixel-canvas>
+```
+
+`play()`, `pause()`, the `paused` attribute (write it to start paused),
+`play`/`pause` events, and the `--play`, `--pause`, and `--toggle`
+invoker commands control the clock, as on
+[`<frame-timer>`](../../frame-timer/readme.md). Pausing freezes `time`
+(and the `fps` redraws), not a video source. For visitors who prefer
+reduced motion, the clock waits for `play()`.
+
 ## Colors from the image
 
 `swatches="5"` publishes the result's five most common colors as custom
@@ -91,11 +111,15 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 | `effects` | `effects` | `string` | Effects to apply, in order, like CSS `filter`: `mosaic(4) palette(gameboy, ordered) adjust(contrast 1.3)`. They run after any effect elements inside. |
 | `swatches` | `swatches` | `number` | Publish the result's N most common colors as `--pixel-swatch-1` … `--pixel-swatch-N` custom properties (and the `palette` property). Default: none. |
 | `swatches-target` | `swatchesTarget` | `string` | A selector for more elements to set those custom properties on (for example `html`, to theme the page). They're always set on the `<pixel-canvas>` itself. |
+| `fps` |  | `number` | Redraw at this rate, so effects that change over time (`glitch`, `wave`, your own) animate even on a still image. Without it, it redraws only when something changes (or every frame of a playing video). |
+| `paused` | `paused` | `boolean` | Stops the clock effects animate by, and the `fps` redraws. Reflects; write it in markup to start paused. |
 
 ### Properties
 
 | Property | Type | Description |
 |---|---|---|
+| `time` (read-only) | `number` | Seconds on the clock that effects animate by. It runs while the element is connected and not paused (and, for visitors who prefer reduced motion, only once `play()` is called). |
+| `paused` (read-only) | `boolean` | Whether the clock is paused. |
 | `source` (read-only) | `Element \| null` | The image, video, canvas, or `<pixel-sprite>` being drawn: the first one inside. |
 | `effectElements` (read-only) | `Element[]` | The effect elements wrapped around the source, in the order they run (innermost first). Disabled ones are included. |
 | `effects` | `string` | Mirrors the `effects` attribute. |
@@ -110,6 +134,8 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 
 | Method | Description |
 |---|---|
+| `play()` | Start or resume the clock (and the `fps` redraws). |
+| `pause()` | Pause the clock where it is. |
 | `render()` | Draw now, instead of on the next frame. Returns whether it drew. |
 | `toBlob(type, quality)` | The result as an image file, like `HTMLCanvasElement.toBlob()`. |
 | `toDataURL(type, quality)` | The result as a data: URL, like `HTMLCanvasElement.toDataURL()`. |
@@ -118,6 +144,8 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 
 | Event | Description |
 |---|---|
+| `play` | The clock started or resumed. |
+| `pause` | The clock paused. |
 | `load` | The first frame of a source was drawn. |
 | `palettechange` | With `swatches`: the published colors changed. |
 | `error` | The source can't be read (for example, a cross-origin image without CORS) or an effect threw: an `ErrorEvent`, and the original content is shown instead. Also fired, once per name, for an unknown effect in `effects`, which is skipped. |

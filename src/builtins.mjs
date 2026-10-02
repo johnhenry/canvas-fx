@@ -9,8 +9,10 @@ import * as halftone from "./pixel-halftone/effect.mjs";
 import * as outline from "./pixel-outline/effect.mjs";
 import * as crt from "./pixel-crt/effect.mjs";
 import * as chromaKey from "./pixel-chroma-key/effect.mjs";
+import * as glitch from "./pixel-glitch/effect.mjs";
+import * as wave from "./pixel-wave/effect.mjs";
 
-const BUILT_IN = { mosaic, palette, grid, adjust, halftone, outline, crt, "chroma-key": chromaKey };
+const BUILT_IN = { mosaic, palette, grid, adjust, halftone, outline, crt, "chroma-key": chromaKey, glitch, wave };
 for (const [name, effect] of Object.entries(BUILT_IN)) {
   definePixelEffect(name, effect.apply, { params: effect.params, element: false });
 }

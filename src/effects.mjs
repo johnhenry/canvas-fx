@@ -25,7 +25,11 @@ export const effectRegistry = new EventTarget();
  * @typedef {Record<string, string> & { args: string[] }} EffectParams
  *   Parameter values as written (strings), by name. `args` holds
  *   positional values beyond the declared parameters.
- * @typedef {{ name: string, params: string[], apply: (image: ImageData, params: EffectParams) => ImageData | void }} Effect
+ * @typedef {{ time: number, frame: number }} EffectContext
+ *   When the effect is running: `time` is seconds on the <pixel-canvas>
+ *   clock (which stops while it's paused), `frame` counts its redraws.
+ *   Effects that change over time use these; most ignore them.
+ * @typedef {{ name: string, params: string[], apply: (image: ImageData, params: EffectParams, context: EffectContext) => ImageData | void }} Effect
  */
 
 /**
@@ -33,9 +37,10 @@ export const effectRegistry = new EventTarget();
  * attribute and as a `<pixel-name>` element (unless that tag is taken).
  * `params` lists the parameter names, in the order positional values fill
  * them. `apply` gets the ImageData and the parameter values (strings), and
- * returns an ImageData (or changes the one it got).
+ * returns an ImageData (or changes the one it got). A third argument,
+ * `{ time, frame }`, is there for effects that change over time.
  * @param {string} name
- * @param {(image: ImageData, params: EffectParams) => ImageData | void} apply
+ * @param {(image: ImageData, params: EffectParams, context: EffectContext) => ImageData | void} apply
  * @param {{ params?: string[], element?: boolean }} [options]
  * @returns {Effect}
  */
@@ -150,11 +155,12 @@ export class PixelEffect extends HTMLElement {
   /**
    * Transform the image (by default, with this element's effect).
    * @param {ImageData} image
+   * @param {EffectContext} [context]
    * @returns {ImageData}
    */
-  apply(image) {
+  apply(image, context = { time: 0, frame: 0 }) {
     const effect = /** @type {typeof PixelEffect} */ (this.constructor).effect;
-    return (effect && effect.apply(image, this.params)) || image;
+    return (effect && effect.apply(image, this.params, context)) || image;
   }
 
   /**
@@ -207,6 +213,24 @@ export function parseColor(color) {
   probe.fillStyle = color;
   probe.fillRect(0, 0, 1, 1);
   return /** @type {[number, number, number, number]} */ ([...probe.getImageData(0, 0, 1, 1).data]);
+}
+
+/**
+ * A repeatable random-number generator: the same seed gives the same
+ * sequence (mulberry32). For effects that should look random but not
+ * flicker between redraws of the same frame.
+ * @param {number} seed
+ * @returns {() => number} numbers in [0, 1)
+ */
+export function random(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
 /**

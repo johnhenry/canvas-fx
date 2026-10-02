@@ -27,6 +27,8 @@ image can't be read, the plain `<img>` shows, so nothing is lost.
 | `outline(threshold, ink, paper)` | [`<pixel-outline>`](./pixel-outline/readme.md) | Line art from edges |
 | `crt(scanlines, mask, glow)` | [`<pixel-crt>`](./pixel-crt/readme.md) | An old screen: scanlines and a color stripe mask |
 | `chroma-key(color, tolerance, softness)` | [`<pixel-chroma-key>`](./pixel-chroma-key/readme.md) | Makes a color transparent (green screen) |
+| `glitch(amount, rate)` | [`<pixel-glitch>`](./pixel-glitch/readme.md) | Animated digital breakup |
+| `wave(amplitude, wavelength, speed)` | [`<pixel-wave>`](./pixel-wave/readme.md) | Rows rippling along a moving sine wave |
 
 The [`<pixel-canvas>`](./pixel-canvas/readme.md) draws the result. Its
 source can be an `<img>`, a `<video>`, a `<canvas>`, or a
@@ -88,7 +90,10 @@ definePixelEffect(
 
 The function gets the `ImageData` and the parameters as strings, by name
 (`number()` and `parseColor()` help read them), and returns an
-`ImageData`. A canvas already showing an effect that wasn't defined yet
+`ImageData`. A third argument, `{ time, frame }`, is for effects that
+change over time: `time` is seconds on the canvas's clock, and `frame`
+counts redraws. `random(seed)` gives repeatable randomness, so a paused
+canvas doesn't flicker. A canvas already showing an effect that wasn't defined yet
 redraws once it is. For an effect with its own state, extend `PixelEffect`
 and override `apply(image)`; call `invalidate()` after a change that isn't
 an attribute. Any element with an `apply(image)` method works.

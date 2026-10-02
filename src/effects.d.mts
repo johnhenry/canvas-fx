@@ -7,29 +7,38 @@ export declare const effectRegistry: EventTarget;
 export type EffectParams = Record<string, string> & {
     args: string[];
 };
+export type EffectContext = {
+    time: number;
+    frame: number;
+};
 export type Effect = {
     name: string;
     params: string[];
-    apply: (image: ImageData, params: EffectParams) => ImageData | void;
+    apply: (image: ImageData, params: EffectParams, context: EffectContext) => ImageData | void;
 };
 /**
  * @typedef {Record<string, string> & { args: string[] }} EffectParams
  *   Parameter values as written (strings), by name. `args` holds
  *   positional values beyond the declared parameters.
- * @typedef {{ name: string, params: string[], apply: (image: ImageData, params: EffectParams) => ImageData | void }} Effect
+ * @typedef {{ time: number, frame: number }} EffectContext
+ *   When the effect is running: `time` is seconds on the <pixel-canvas>
+ *   clock (which stops while it's paused), `frame` counts its redraws.
+ *   Effects that change over time use these; most ignore them.
+ * @typedef {{ name: string, params: string[], apply: (image: ImageData, params: EffectParams, context: EffectContext) => ImageData | void }} Effect
  */
 /**
  * Register an effect under `name`: usable as `name(…)` in an `effects`
  * attribute and as a `<pixel-name>` element (unless that tag is taken).
  * `params` lists the parameter names, in the order positional values fill
  * them. `apply` gets the ImageData and the parameter values (strings), and
- * returns an ImageData (or changes the one it got).
+ * returns an ImageData (or changes the one it got). A third argument,
+ * `{ time, frame }`, is there for effects that change over time.
  * @param {string} name
- * @param {(image: ImageData, params: EffectParams) => ImageData | void} apply
+ * @param {(image: ImageData, params: EffectParams, context: EffectContext) => ImageData | void} apply
  * @param {{ params?: string[], element?: boolean }} [options]
  * @returns {Effect}
  */
-export declare function definePixelEffect(name: string, apply: (image: ImageData, params: EffectParams) => ImageData | void, { params, element }?: {
+export declare function definePixelEffect(name: string, apply: (image: ImageData, params: EffectParams, context: EffectContext) => ImageData | void, { params, element }?: {
     params?: string[];
     element?: boolean;
 }): Effect;
@@ -77,9 +86,10 @@ export declare class PixelEffect extends HTMLElement {
     /**
      * Transform the image (by default, with this element's effect).
      * @param {ImageData} image
+     * @param {EffectContext} [context]
      * @returns {ImageData}
      */
-    apply(image: ImageData): ImageData;
+    apply(image: ImageData, context?: EffectContext): ImageData;
     /**
      * Whether the effect is switched off (the image passes through).
      * Mirrors the `disabled` attribute.
@@ -109,6 +119,14 @@ export declare function number(value: string | undefined | null, fallback: numbe
  * @returns {[number, number, number, number] | null} null if it isn't a color
  */
 export declare function parseColor(color: string | undefined | null): [number, number, number, number] | null;
+/**
+ * A repeatable random-number generator: the same seed gives the same
+ * sequence (mulberry32). For effects that should look random but not
+ * flicker between redraws of the same frame.
+ * @param {number} seed
+ * @returns {() => number} numbers in [0, 1)
+ */
+export declare function random(seed: number): () => number;
 /**
  * Perceived brightness of an RGB color, 0–255.
  * @param {number} r @param {number} g @param {number} b
