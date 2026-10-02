@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>pixel-canvas</title>
+<script type="module" src="../global.mjs"></script>
+<script type="module">
+  import { definePixelFilter } from "../pixel-filter.mjs";
+  // A custom effect, no class needed: invert the colors.
+  definePixelFilter("pixel-invert", (image) => {
+    for (let i = 0; i < image.data.length; i += 4) {
+      image.data[i] = 255 - image.data[i];
+      image.data[i + 1] = 255 - image.data[i + 1];
+      image.data[i + 2] = 255 - image.data[i + 2];
+    }
+    return image;
+  });
+</script>
+<style>
+  body { font: 14px/1.5 system-ui, sans-serif; margin: 12px; }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; }
+  figure { margin: 0; }
+  pixel-canvas, figure > img { inline-size: 240px; }
+  figcaption code { font-size: 12px; }
+  button, label { font: inherit; }
+</style>
+</head>
+<body>
+<div class="row">
+  <figure>
+    <img src="scene.svg" alt="A sunset over hills" />
+    <figcaption>The source</figcaption>
+  </figure>
+  <figure>
+    <pixel-canvas width="80">
+      <img src="scene.svg" alt="A sunset over hills, pixelated" />
+    </pixel-canvas>
+    <figcaption><code>width="80"</code></figcaption>
+  </figure>
+  <figure>
+    <pixel-canvas width="160">
+      <pixel-palette colors="gameboy" dither="ordered">
+        <img src="scene.svg" alt="A sunset, Game Boy style" />
+      </pixel-palette>
+    </pixel-canvas>
+    <figcaption><code>colors="gameboy" dither="ordered"</code></figcaption>
+  </figure>
+  <figure>
+    <pixel-canvas width="240">
+      <pixel-palette colors="1bit" dither="floyd-steinberg">
+        <img src="scene.svg" alt="A sunset in black and white" />
+      </pixel-palette>
+    </pixel-canvas>
+    <figcaption><code>colors="1bit" dither="floyd-steinberg"</code></figcaption>
+  </figure>
+  <figure>
+    <pixel-canvas width="240">
+      <pixel-grid size="8" color="rgb(0 0 0 / 0.5)">
+        <pixel-palette colors="pico-8">
+          <pixel-mosaic size="8">
+            <img src="scene.svg" alt="A sunset as a mosaic of tiles" />
+          </pixel-mosaic>
+        </pixel-palette>
+      </pixel-grid>
+    </pixel-canvas>
+    <figcaption>mosaic → <code>pico-8</code> → grid</figcaption>
+  </figure>
+  <figure>
+    <pixel-canvas id="toggled" width="160">
+      <pixel-invert id="invert" disabled>
+        <pixel-palette colors="sepia" dither="ordered">
+          <img src="scene.svg" alt="A sunset in sepia" />
+        </pixel-palette>
+      </pixel-invert>
+    </pixel-canvas>
+    <figcaption>
+      <label><input type="checkbox" id="invert-on" /> a custom <code>pixel-invert</code></label>
+      <button id="save">Download PNG</button>
+    </figcaption>
+  </figure>
+</div>
+
+<h2>Live</h2>
+<p>A camera (or any playing <code>&lt;video&gt;</code>) is redrawn every frame.</p>
+<button id="camera">Start camera</button>
+<pixel-canvas width="160" style="inline-size: 320px">
+  <pixel-palette colors="gameboy" dither="ordered">
+    <video id="video" muted playsinline aria-label="Your camera, Game Boy style"></video>
+  </pixel-palette>
+</pixel-canvas>
+
+<script type="module">
+  document.getElementById("invert-on").onchange = (event) => (document.getElementById("invert").disabled = !event.target.checked);
+  document.getElementById("save").onclick = async () => {
+    const blob = await document.getElementById("toggled").toBlob();
+    const link = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "pixel.png" });
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+  document.getElementById("camera").onclick = async () => {
+    const video = document.getElementById("video");
+    video.srcObject = await navigator.mediaDevices.getUserMedia({ video: true });
+    await video.play();
+  };
+</script>
+</body>
+</html>
