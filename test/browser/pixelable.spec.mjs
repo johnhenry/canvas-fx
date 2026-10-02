@@ -445,3 +445,62 @@ test.describe("the newer effects", () => {
     expect(mismatches).toEqual([]);
   });
 });
+
+test.describe("colors from the image", () => {
+  // A picture that's mostly red, some blue, a little white.
+  const ROWS = Array.from({ length: 10 }, (_, y) => Array.from({ length: 10 }, (_, x) => (y < 6 ? "#e00000" : x < 7 ? "#0000d0" : "#ffffff")));
+
+  test("palette(auto) reduces the image to its own dominant colors", async ({ page }) => {
+    const gradient = Array.from({ length: 16 }, (_, y) => Array.from({ length: 16 }, (_, x) => `rgb(${x * 16} ${y * 16} 128)`));
+    await setup(
+      page,
+      `<pixel-canvas id="p" effects="palette(auto, none, 4)"><canvas data-source></canvas></pixel-canvas>
+       <pixel-canvas id="el"><pixel-palette colors="auto" count="4"><canvas data-source></canvas></pixel-palette></pixel-canvas>`,
+      gradient,
+    );
+    const result = await page.evaluate(() => ({
+      distinct: new Set(window.pixels(document.getElementById("p")).flat()).size,
+      same: JSON.stringify(window.pixels(document.getElementById("p"))) === JSON.stringify(window.pixels(document.getElementById("el"))),
+      elementPalette: document.querySelector("pixel-palette").palette,
+    }));
+    expect(result.distinct).toBeLessThanOrEqual(4);
+    expect(result.distinct).toBeGreaterThan(1);
+    expect(result.same).toBe(true);
+    expect(result.elementPalette, "auto depends on the image").toEqual([]);
+  });
+
+  test("swatches publishes the most common colors as custom properties, in order", async ({ page }) => {
+    await setup(page, `<pixel-canvas id="p" swatches="3" swatches-target="html"><canvas data-source></canvas></pixel-canvas>`, ROWS);
+    const result = await page.evaluate(() => {
+      const p = document.getElementById("p");
+      const root = document.documentElement.style;
+      return {
+        palette: p.palette,
+        own: p.style.getPropertyValue("--pixel-swatch-1"),
+        html: [1, 2, 3].map((i) => root.getPropertyValue(`--pixel-swatch-${i}`)),
+      };
+    });
+    expect(result.palette).toEqual(["#e00000", "#0000d0", "#ffffff"]);
+    expect(result.own).toBe("#e00000");
+    expect(result.html).toEqual(["#e00000", "#0000d0", "#ffffff"]);
+  });
+
+  test("palettechange fires when the colors change; fewer swatches and removal clean up", async ({ page }) => {
+    await setup(page, `<pixel-canvas id="p" swatches="3" swatches-target="html"><canvas data-source></canvas></pixel-canvas>`, ROWS);
+    const result = await page.evaluate(async () => {
+      const p = document.getElementById("p");
+      const events = [];
+      p.addEventListener("palettechange", () => events.push(p.palette.length));
+      p.render(); // same picture: no event
+      p.swatches = 1;
+      p.render();
+      const html = () => [1, 2, 3].map((i) => document.documentElement.style.getPropertyValue(`--pixel-swatch-${i}`));
+      const afterOne = html();
+      p.remove();
+      return { events, afterOne, afterRemoval: html() };
+    });
+    expect(result.events).toEqual([1]);
+    expect(result.afterOne).toEqual(["#e00000", "", ""]);
+    expect(result.afterRemoval).toEqual(["", "", ""]);
+  });
+});

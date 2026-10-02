@@ -23,6 +23,7 @@
 
 import "../builtins.mjs";
 import { effectRegistry, getPixelEffect, parseEffects, resolveParams } from "../effects.mjs";
+import { dominantColors, toHex } from "../quantize.mjs";
 
 const SOURCES = "img, video, canvas";
 const setAttr = (element, name, value) => {
@@ -39,14 +40,17 @@ const setAttr = (element, name, value) => {
  * @attr {number} width - Working width in pixels: the source is scaled to it (keeping its aspect ratio) before the effects run. Smaller is faster and chunkier. Default: the source's own width.
  * @attr {number} height - Working height, if `width` isn't given.
  * @attr {string} effects - Effects to apply, in order, like CSS `filter`: `mosaic(4) palette(gameboy, ordered) adjust(contrast 1.3)`. They run after any effect elements inside.
+ * @attr {number} swatches - Publish the result's N most common colors as `--pixel-swatch-1` … `--pixel-swatch-N` custom properties (and the `palette` property). Default: none.
+ * @attr {string} swatches-target - A selector for more elements to set those custom properties on (for example `html`, to theme the page). They're always set on the `<pixel-canvas>` itself.
  *
  * @fires load - The first frame of a source was drawn.
+ * @fires palettechange - With `swatches`: the published colors changed.
  * @fires error - The source can't be read (for example, a cross-origin image without CORS) or an effect threw: an `ErrorEvent`, and the original content is shown instead. Also fired, once per name, for an unknown effect in `effects`, which is skipped.
  *
  * @csspart canvas - The `<canvas>` showing the result.
  */
 export default class PixelCanvas extends HTMLElement {
-  static observedAttributes = ["width", "height", "effects"];
+  static observedAttributes = ["width", "height", "effects", "swatches", "swatches-target"];
 
   #canvas;
   #slot;
@@ -104,6 +108,7 @@ export default class PixelCanvas extends HTMLElement {
     this.#scheduled = 0;
     this.#stopVideo();
     this.#bindSource(null);
+    this.#publish([]); // take our custom properties back off the targets
   }
 
   attributeChangedCallback() {
@@ -142,6 +147,38 @@ export default class PixelCanvas extends HTMLElement {
   }
   set effects(value) {
     this.setAttribute("effects", value);
+  }
+
+  /**
+   * How many swatches to publish. Mirrors the `swatches` attribute.
+   * @type {number}
+   */
+  get swatches() {
+    return Math.max(0, Math.floor(Number(this.getAttribute("swatches")) || 0));
+  }
+  set swatches(value) {
+    this.setAttribute("swatches", String(value));
+  }
+
+  /**
+   * Mirrors the `swatches-target` attribute.
+   * @type {string}
+   */
+  get swatchesTarget() {
+    return this.getAttribute("swatches-target") ?? "";
+  }
+  set swatchesTarget(value) {
+    this.setAttribute("swatches-target", value);
+  }
+
+  /**
+   * With `swatches`: the result's most common colors, as `#rrggbb`, most
+   * common first. Empty otherwise.
+   * @type {string[]}
+   * @readonly
+   */
+  get palette() {
+    return [...this.#palette];
   }
 
   /**
@@ -272,6 +309,10 @@ export default class PixelCanvas extends HTMLElement {
       if (this.#canvas.width !== image.width) this.#canvas.width = image.width;
       if (this.#canvas.height !== image.height) this.#canvas.height = image.height;
       this.#canvas.getContext("2d").putImageData(image, 0, 0);
+      const count = this.swatches;
+      // Cluster into at least 8 colors and keep the most common: with fewer
+      // clusters, a swatch would be an average of unlike colors.
+      this.#publish(count ? dominantColors(image, Math.max(count, 8)).slice(0, count).map(toHex) : []);
     } catch (error) {
       this.#fail(error);
       return false;
@@ -286,6 +327,29 @@ export default class PixelCanvas extends HTMLElement {
     return true;
   }
   #loadedSrc = null;
+
+  // Set --pixel-swatch-N on this element and the swatches-target ones,
+  // remove them from elements no longer targeted, and say when they change.
+  #publish(colors) {
+    let targets = [this];
+    try {
+      if (this.swatchesTarget && this.isConnected) targets = [this, ...document.querySelectorAll(this.swatchesTarget)];
+    } catch {
+      // an invalid selector: just this element
+    }
+    if (!colors.length) targets = [];
+    for (const element of this.#swatched) {
+      if (targets.includes(element) && this.#palette.length <= colors.length) continue;
+      for (let i = 1; i <= this.#palette.length; i++) element.style.removeProperty(`--pixel-swatch-${i}`);
+    }
+    for (const element of targets) colors.forEach((color, i) => element.style.setProperty(`--pixel-swatch-${i + 1}`, color));
+    this.#swatched = new Set(targets);
+    const changed = colors.length !== this.#palette.length || colors.some((color, i) => color !== this.#palette[i]);
+    this.#palette = colors;
+    if (changed && this.isConnected) this.dispatchEvent(new Event("palettechange", { bubbles: true }));
+  }
+  #palette = [];
+  #swatched = new Set();
 
   #unknown(name) {
     if (this.#reportedUnknown.has(name)) return;

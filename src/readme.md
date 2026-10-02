@@ -20,7 +20,7 @@ image can't be read, the plain `<img>` shows, so nothing is lost.
 | Function | Element | What it does |
 |---|---|---|
 | `mosaic(size)` | [`<pixel-mosaic>`](./pixel-mosaic/readme.md) | Pixelates into blocks of one color |
-| `palette(colors, dither)` | [`<pixel-palette>`](./pixel-palette/readme.md) | Limits the colors to a palette (`gameboy`, `pico-8`, `1bit`, … or any CSS colors), with dithering |
+| `palette(colors, dither, count)` | [`<pixel-palette>`](./pixel-palette/readme.md) | Limits the colors to a palette (`gameboy`, `pico-8`, `1bit`, …, any CSS colors, or `auto` from the image), with dithering |
 | `grid(size, color, line)` | [`<pixel-grid>`](./pixel-grid/readme.md) | Grid lines between cells |
 | `adjust(brightness, contrast, saturation, hue)` | [`<pixel-adjust>`](./pixel-adjust/readme.md) | Tone and color, like the CSS filter functions |
 | `halftone(size, angle, ink, paper)` | [`<pixel-halftone>`](./pixel-halftone/readme.md) | Printed dots |
@@ -99,6 +99,9 @@ an attribute. Any element with an `apply(image)` method works.
   `<pixel-canvas>` for a virtual backdrop.
 - **Privacy:** `mosaic(16)` makes faces or screenshots unrecognizable, on
   the client.
+- **Theme from a picture:** `<pixel-canvas swatches="3" swatches-target="html">`
+  sets `--pixel-swatch-1` … `--pixel-swatch-3` from an album cover or
+  photo, for the page's CSS to use.
 - **Previews:** what an image looks like on an e-ink panel
   (`palette(#000 #fff, floyd-steinberg)`) or an old TV (`crt()`).
 

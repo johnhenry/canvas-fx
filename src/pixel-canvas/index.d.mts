@@ -11,6 +11,13 @@ export default class PixelCanvas extends HTMLElement {
   readonly effectElements: Element[];
   /** Mirrors the `effects` attribute. */
   effects: string;
+  /** How many swatches to publish. Mirrors the `swatches` attribute. */
+  swatches: number;
+  /** Mirrors the `swatches-target` attribute. */
+  swatchesTarget: string;
+  /** With `swatches`: the result's most common colors, as `#rrggbb`, most
+   * common first. Empty otherwise. */
+  readonly palette: string[];
   /** The canvas showing the result (in the shadow root). */
   readonly canvas: HTMLCanvasElement;
   /** Draw now, instead of on the next frame. Returns whether it drew. */

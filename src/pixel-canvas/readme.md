@@ -45,6 +45,29 @@ It redraws, at most once a frame:
 The light-DOM content stays in the document, so an image keeps loading
 and a video keeps playing, but only the canvas is displayed.
 
+## Colors from the image
+
+`swatches="5"` publishes the result's five most common colors as custom
+properties, `--pixel-swatch-1` (the most common) to `--pixel-swatch-5`, on
+the `<pixel-canvas>` and on whatever `swatches-target` selects. So a page,
+or a card, can take its theme from a photo or an album cover:
+
+```html
+<pixel-canvas swatches="3" swatches-target="html" width="64">
+  <img src="album.jpg" alt="Album cover" />
+</pixel-canvas>
+<style>
+  body { background: var(--pixel-swatch-1); color: var(--pixel-swatch-3); }
+</style>
+```
+
+The `palette` property lists them (`#rrggbb`, most common first), and a
+`palettechange` event fires when they change, such as when the image
+does. They're found by clustering the colors (median cut, refined with
+k-means), from at most about 16,000 sampled pixels. Mostly transparent
+pixels don't count. Removing the element, or the attribute, takes the
+properties back off.
+
 ## Saving the result
 
 `toBlob(type, quality)` and `toDataURL(type, quality)` work like a
@@ -65,6 +88,8 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 | `width` | `width` | `number` | Working width in pixels: the source is scaled to it (keeping its aspect ratio) before the effects run. Smaller is faster and chunkier. Default: the source's own width. |
 | `height` | `height` | `number` | Working height, if `width` isn't given. |
 | `effects` | `effects` | `string` | Effects to apply, in order, like CSS `filter`: `mosaic(4) palette(gameboy, ordered) adjust(contrast 1.3)`. They run after any effect elements inside. |
+| `swatches` | `swatches` | `number` | Publish the result's N most common colors as `--pixel-swatch-1` … `--pixel-swatch-N` custom properties (and the `palette` property). Default: none. |
+| `swatches-target` | `swatchesTarget` | `string` | A selector for more elements to set those custom properties on (for example `html`, to theme the page). They're always set on the `<pixel-canvas>` itself. |
 
 ### Properties
 
@@ -73,6 +98,9 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 | `source` (read-only) | `HTMLImageElement \| HTMLVideoElement \| HTMLCanvasElement \| null` | The image, video, or canvas being drawn: the first one inside. |
 | `effectElements` (read-only) | `Element[]` | The effect elements wrapped around the source, in the order they run (innermost first). Disabled ones are included. |
 | `effects` | `string` | Mirrors the `effects` attribute. |
+| `swatches` | `number` | How many swatches to publish. Mirrors the `swatches` attribute. |
+| `swatchesTarget` | `string` | Mirrors the `swatches-target` attribute. |
+| `palette` (read-only) | `string[]` | With `swatches`: the result's most common colors, as `#rrggbb`, most common first. Empty otherwise. |
 | `canvas` (read-only) | `HTMLCanvasElement` | The canvas showing the result (in the shadow root). |
 | `width` | `number` | Mirrors the `width` attribute. |
 | `height` | `number` | Mirrors the `height` attribute. |
@@ -90,6 +118,7 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 | Event | Description |
 |---|---|
 | `load` | The first frame of a source was drawn. |
+| `palettechange` | With `swatches`: the published colors changed. |
 | `error` | The source can't be read (for example, a cross-origin image without CORS) or an effect threw: an `ErrorEvent`, and the original content is shown instead. Also fired, once per name, for an unknown effect in `effects`, which is skipped. |
 
 <!-- api:end -->

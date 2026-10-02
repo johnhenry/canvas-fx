@@ -83,6 +83,21 @@
   </figure>
 </div>
 
+<h2>Colors from the image</h2>
+<div class="row">
+  <figure id="themed" style="padding: 12px; border-radius: 8px; background: var(--pixel-swatch-1, #eee); color: white; border: 6px solid var(--pixel-swatch-3, #ccc)">
+    <pixel-canvas id="swatched" width="120" swatches="4" swatches-target="#themed" effects="palette(auto, ordered, 6)"><img src="scene.svg" alt="A sunset in its own six colors" /></pixel-canvas>
+    <figcaption><code>palette(auto, ordered, 6)</code>, and this card's colors come from <code>swatches="4"</code>: <span id="swatch-list"></span></figcaption>
+  </figure>
+</div>
+<script type="module">
+  const swatched = document.getElementById("swatched");
+  swatched.addEventListener("palettechange", () => {
+    document.getElementById("swatch-list").replaceChildren(...swatched.palette.map((color) =>
+      Object.assign(document.createElement("code"), { textContent: color + " ", style: `background: ${color}; color: white; padding: 0 4px` })));
+  });
+</script>
+
 <h2>Live</h2>
 <p>A camera (or any playing <code>&lt;video&gt;</code>) is redrawn every frame.</p>
 <button id="camera">Start camera</button>
