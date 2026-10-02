@@ -597,12 +597,13 @@ test.describe("pixel-sprite", () => {
     const read = () =>
       page.evaluate(() => {
         const c = document.getElementById("p").canvas;
+        if (!c.width) return null; // not drawn yet
         const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
         return { size: [c.width, c.height], left: [...d.slice(0, 3)].join(), right: [...d.slice(12, 15)].join(), label: document.getElementById("p").getAttribute("aria-label") };
       });
     await expect.poll(read).toEqual({ size: [4, 2], left: "0,0,0", right: "255,0,0", label: "A flag" });
     await page.evaluate(() => (document.getElementById("s").frame = 1));
-    await expect.poll(() => read().then((r) => [r.left, r.right])).toEqual(["255,0,0", "0,0,0"]);
+    await expect.poll(() => read().then((r) => r && [r.left, r.right])).toEqual(["255,0,0", "0,0,0"]);
   });
 });
 
