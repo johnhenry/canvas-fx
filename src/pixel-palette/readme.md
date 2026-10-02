@@ -25,8 +25,9 @@ Part of [pixelable](../readme.md).
 
 ## Palettes
 
-`colors` is a named palette or a space-separated list of any CSS colors
-(`colors="#000 white rgb(255 0 0)"`).
+`colors` is a named palette, a space-separated list of any CSS colors
+(`colors="#000 white rgb(255 0 0)"`), or `auto`, which picks `count`
+colors from the image itself: `palette(auto, floyd-steinberg, 6)`.
 
 | Name | Colors |
 |---|---|
@@ -36,6 +37,7 @@ Part of [pixelable](../readme.md).
 | `cga` | black, cyan, magenta, white |
 | `sepia` | four browns |
 | `pico-8` | the 16 PICO-8 colors |
+| `auto` | the image's own dominant colors, `count` of them (default 8) |
 
 The named palettes are the default export of `palettes.mjs`, and
 the `palette` property gives the resolved colors as `[r, g, b]` triples.
@@ -56,15 +58,16 @@ the `palette` property gives the resolved colors as `[r, g, b]` triples.
 
 | Attribute | Property | Type | Description |
 |---|---|---|---|
-| `colors` |  | `string` | A named palette (`1bit`, `gameboy`, `grayscale`, `cga`, `sepia`, `pico-8`) or space-separated CSS colors. Default `1bit`. |
+| `colors` |  | `string` | A named palette (`1bit`, `gameboy`, `grayscale`, `cga`, `sepia`, `pico-8`), space-separated CSS colors, or `auto` (the image's own dominant colors). Default `1bit`. |
 | `dither` |  | `string` | `none` (default), `floyd-steinberg` (error diffusion), or `ordered` (a 4×4 Bayer pattern). |
+| `count` |  | `number` | With `colors="auto"`: how many colors to pick. Default 8. |
 | `disabled` |  | `boolean` | Pass the image through unchanged. |
 
 ### Properties
 
 | Property | Type | Description |
 |---|---|---|
-| `palette` (read-only) | `number[][]` | The resolved palette, as `[r, g, b]` triples. |
+| `palette` (read-only) | `number[][]` | The resolved palette, as `[r, g, b]` triples. Empty for `auto`, which depends on the image (see `<pixel-canvas>`'s `palette`). |
 
 <!-- api:end -->
 
@@ -73,3 +76,5 @@ the `palette` property gives the resolved colors as `[r, g, b]` triples.
 - The nearest color is chosen by distance weighted for how eyes see
   brightness (more weight on green).
 - Transparency is kept as it is; only red, green, and blue are mapped.
+- With `auto` on a video, the palette is picked again every frame, so it
+  can shift as the picture changes.

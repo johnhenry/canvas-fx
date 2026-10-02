@@ -1,18 +1,22 @@
 // palette(colors, dither): reduce the image to a palette, optionally dithered.
-import { parseColor } from "../effects.mjs";
+import { number, parseColor } from "../effects.mjs";
+import { dominantColors } from "../quantize.mjs";
 import PALETTES from "./palettes.mjs";
 
-export const params = ["colors", "dither"];
+export const params = ["colors", "dither", "count"];
 
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((n) => (n + 0.5) / 16 - 0.5);
 
 /**
- * A palette as [r, g, b] triples: a named one, or space-separated CSS colors.
+ * A palette as [r, g, b] triples: a named one, or space-separated CSS
+ * colors. `auto` needs an image to pick from; without one it's empty.
  * @param {string | undefined | null} colors
+ * @param {{ image?: ImageData, count?: number }} [options]
  * @returns {number[][]}
  */
-export function resolvePalette(colors) {
+export function resolvePalette(colors, { image, count = 8 } = {}) {
   const text = (colors ?? "").trim() || "1bit";
+  if (text.toLowerCase() === "auto") return image ? dominantColors(image, count) : [];
   const named = PALETTES[text.toLowerCase()];
   // Split on spaces outside parentheses, so "rgb(0 0 0)" stays whole.
   const list = named ?? text.match(/[^\s(]+(\([^)]*\))?/g) ?? [];
@@ -23,7 +27,8 @@ export function resolvePalette(colors) {
 /** @param {ImageData} image @param {Record<string, string>} p */
 export function apply(image, p) {
   const { width, height, data } = image;
-  const palette = resolvePalette(p.colors);
+  const palette = resolvePalette(p.colors, { image, count: Math.floor(number(p.count, 8, { min: 2, max: 256 })) });
+  if (!palette.length) return image;
   const dither = (p.dither ?? "none").trim();
   const nearest = (r, g, b) => {
     let best = palette[0];
