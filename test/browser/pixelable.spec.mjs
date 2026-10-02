@@ -189,6 +189,16 @@ test("a playing video is redrawn every frame", async ({ page }) => {
   await mount(page, `<canvas id="feed" width="4" height="4"></canvas><pixel-canvas id="p"><video muted playsinline></video></pixel-canvas>`, MODULES);
   const supported = await page.evaluate(() => typeof HTMLCanvasElement.prototype.captureStream === "function");
   test.skip(!supported, "no canvas.captureStream() in this engine");
+  // Some engine builds (WebKit on Linux CI) can't play a canvas stream at
+  // all: video.play() never settles. Skip there rather than time out.
+  const plays = await page.evaluate(async () => {
+    const video = document.querySelector("video");
+    video.srcObject = document.getElementById("feed").captureStream(30);
+    const started = await Promise.race([video.play().then(() => true, () => false), new Promise((r) => setTimeout(() => r(false), 3000))]);
+    video.pause();
+    return started;
+  });
+  test.skip(!plays, "this engine can't play a canvas stream here");
   const result = await page.evaluate(async () => {
     const feed = document.getElementById("feed");
     const context = feed.getContext("2d");
