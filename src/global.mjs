@@ -12,3 +12,4 @@ import "./pixel-crt/global.mjs";
 import "./pixel-chroma-key/global.mjs";
 import "./pixel-glitch/global.mjs";
 import "./pixel-wave/global.mjs";
+import "./pixel-shader/global.mjs";

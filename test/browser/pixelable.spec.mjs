@@ -714,3 +714,70 @@ test.describe("effects over time", () => {
     expect(states).toEqual([true, false]);
   });
 });
+
+test.describe("shaders", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/test/browser/fixture.html");
+    const webgl2 = await page.evaluate(() => !!new OffscreenCanvas(1, 1).getContext("webgl2"));
+    test.skip(!webgl2, "no WebGL2 in this engine here");
+  });
+
+  const SWAP = `<script type="x-shader/x-fragment">color = pixel.bgra;</script>`;
+
+  test("a <pixel-shader> runs its GLSL on the image, top-left first, chaining with other effects", async ({ page }) => {
+    await setup(
+      page,
+      `<pixel-canvas id="p" effects="palette(#0000ff #ff0000 #00ff00)"><pixel-shader>${SWAP}<canvas data-source></canvas></pixel-shader></pixel-canvas>`,
+      [["#f00", "#00f"], ["#0f0", "#fff"]],
+    );
+    // Swapped: red→blue, blue→red, green stays, white stays (and the
+    // palette maps white to its nearest, green).
+    expect(await page.evaluate(() => window.pixels(document.getElementById("p")))).toEqual([
+      ["0,0,255", "255,0,0"],
+      ["0,255,0", "0,255,0"],
+    ]);
+  });
+
+  test("attributes set u_ uniforms; u_time and u_resolution are provided; a full main() works too", async ({ page }) => {
+    await setup(
+      page,
+      `<pixel-canvas id="p" paused><pixel-shader amount="0.5" line-width="0.25"><script type="x-shader/x-fragment">
+         void main() {
+           color = vec4(u_amount, u_line_width, u_resolution.x / 255.0, 1.0);
+         }
+       </script><canvas data-source></canvas></pixel-shader></pixel-canvas>`,
+      [["#000", "#000", "#000"]],
+    );
+    expect(await page.evaluate(() => window.pixels(document.getElementById("p"))[0][0])).toBe("128,64,3");
+  });
+
+  test("definePixelShader registers it for the attribute and as an element", async ({ page }) => {
+    await setup(
+      page,
+      `<pixel-canvas id="fn" effects="brighten(0.5)"><canvas data-source></canvas></pixel-canvas>
+       <pixel-canvas id="el"><pixel-brighten amount="0.5"><canvas data-source></canvas></pixel-brighten></pixel-canvas>`,
+      [["rgb(100 100 100)"]],
+    );
+    await page.evaluate(async () => {
+      const { definePixelShader } = await import("/src/pixelable/shader.mjs");
+      definePixelShader("brighten", "color = vec4(pixel.rgb + u_amount, 1.0);");
+    });
+    // 100/255 + 0.5 is 227.5 of 255: GPUs may round either way.
+    const near = (pixel) => pixel.split(",").every((v) => Math.abs(Number(v) - 227.5) <= 1);
+    await expect.poll(() => page.evaluate(() => [window.pixels(document.getElementById("fn"))[0][0], window.pixels(document.getElementById("el"))[0][0]]).then((both) => both.every(near)))
+      .toBe(true);
+  });
+
+  test("a shader that doesn't compile fires error with the compiler's message, and shows the original", async ({ page }) => {
+    await setup(page, `<pixel-canvas id="p"><pixel-shader>${SWAP}<canvas data-source></canvas></pixel-shader></pixel-canvas>`, [["#000"]]);
+    const result = await page.evaluate(async () => {
+      const p = document.getElementById("p");
+      const message = new Promise((r) => p.addEventListener("error", (e) => r(e.message), { once: true }));
+      p.querySelector("script").textContent = "color = stillnonsense;";
+      p.render();
+      return { message: await message, failed: p.hasAttribute("data-failed") };
+    });
+    expect(result.message).toContain("Shader didn't compile");
+    expect(result.failed).toBe(true);
+  });
+});

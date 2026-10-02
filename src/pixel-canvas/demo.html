@@ -95,6 +95,33 @@
   </figure>
 </div>
 
+<h2>Shaders</h2>
+<div class="row">
+  <figure>
+    <pixel-canvas width="240" fps="30">
+      <pixel-shader strength="0.02">
+        <script type="x-shader/x-fragment">
+          vec2 offset = vec2(sin(v_uv.y * 40.0 + u_time * 5.0) * u_strength, 0.0);
+          color = texture(u_image, v_uv + offset);
+        </script>
+        <img src="scene.svg" alt="A sunset, shimmering" />
+      </pixel-shader>
+    </pixel-canvas>
+    <figcaption>A <code>&lt;pixel-shader&gt;</code> using <code>u_time</code></figcaption>
+  </figure>
+  <figure>
+    <pixel-canvas width="160" effects="vignette(0.25) palette(gameboy, ordered)"><img src="scene.svg" alt="A sunset, vignetted, Game Boy style" /></pixel-canvas>
+    <figcaption><code>definePixelShader("vignette", …)</code>, then <code>palette()</code></figcaption>
+  </figure>
+</div>
+<script type="module">
+  import { definePixelShader } from "../shader.mjs";
+  definePixelShader("vignette", `
+    float d = distance(v_uv, vec2(0.5));
+    color = vec4(pixel.rgb * smoothstep(0.75, u_size, d), pixel.a);
+  `);
+</script>
+
 <h2>Sprites</h2>
 <div class="row">
   <figure>
@@ -187,7 +214,7 @@
 <h2>Live</h2>
 <p>A camera (or any playing <code>&lt;video&gt;</code>) is redrawn every frame.</p>
 <button id="camera">Start camera</button>
-<pixel-canvas id="live" width="160" style="inline-size: 320px" effects="adjust(contrast 1.3) palette(gameboy, ordered)">
+<pixel-canvas id="live" width="160" fps="30" style="inline-size: 320px" effects="adjust(contrast 1.3) palette(gameboy, ordered)">
   <video id="video" muted playsinline aria-label="Your camera, with effects"></video>
 </pixel-canvas>
 <p>
@@ -197,6 +224,8 @@
     <option>outline(0.12, black, none)</option>
     <option>mosaic(6) palette(pico-8)</option>
     <option>palette(cga) crt()</option>
+    <option>glitch(0.4)</option>
+    <option>vignette(0.3) palette(1bit, ordered)</option>
   </select></label>
 </p>
 

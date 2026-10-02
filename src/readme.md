@@ -98,6 +98,14 @@ redraws once it is. For an effect with its own state, extend `PixelEffect`
 and override `apply(image)`; call `invalidate()` after a change that isn't
 an attribute. Any element with an `apply(image)` method works.
 
+## GPU effects
+
+[`<pixel-shader>`](./pixel-shader/readme.md) runs a GLSL fragment shader
+you write in a `<script type="x-shader/x-fragment">` child, on the GPU,
+with the image, its size, and the clock provided, and its `u_` uniforms
+set from attributes. `definePixelShader(name, code)` (in `shader.mjs`)
+makes a shader a named effect for both forms.
+
 ## Ideas
 
 - **Retro art:** any photo in Game Boy greens, PICO-8 colors, 1-bit
@@ -107,6 +115,8 @@ an attribute. Any element with an `apply(image)` method works.
   `<pixel-canvas>` for a virtual backdrop.
 - **Privacy:** `mosaic(16)` makes faces or screenshots unrecognizable, on
   the client.
+- **Creative coding:** a `<pixel-shader>` over a camera, with `fps` and
+  `u_time` for motion.
 - **Icons and game art with no image files:** `<pixel-sprite>`, animated
   with `fps`, run through `crt()` or `palette(gameboy)`.
 - **Theme from a picture:** `<pixel-canvas swatches="3" swatches-target="html">`
