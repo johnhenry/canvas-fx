@@ -35,7 +35,7 @@ element, usually around a
 | Attribute | Property | Type | Description |
 |---|---|---|---|
 | `size` |  | `number` | Cell size, in the working image's pixels. Default 8. |
-| `color` |  | `string` | Line color, any CSS color (transparency blends). Default `rgb(0 0 0 / 0.35)`. |
+| `color` |  | `string` | Line color, any CSS color (transparency blends). `transparent` cuts gaps instead of drawing lines. Default `rgb(0 0 0 / 0.35)`. |
 | `line` |  | `number` | Line thickness in pixels. Default 1. |
 | `disabled` |  | `boolean` | Pass the image through unchanged. |
 
@@ -46,4 +46,6 @@ element, usually around a
 - Lines run along the top and left of each cell, `line` pixels thick, in
   the working image's pixels.
 - A translucent `color` blends with the image beneath; an opaque one
-  replaces it.
+  replaces it; `transparent` cuts the lines out, so the image becomes
+  separate tiles and whatever is behind the `<pixel-canvas>` (its CSS
+  background, say) shows through the gaps: `grid(8, transparent, 3)`.

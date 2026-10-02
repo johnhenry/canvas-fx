@@ -127,6 +127,17 @@ test("pixel-grid draws lines every size pixels", async ({ page }) => {
   ]);
 });
 
+test("pixel-grid with a transparent color cuts gaps instead of drawing lines", async ({ page }) => {
+  const white = Array.from({ length: 4 }, () => Array(4).fill("#fff"));
+  await setup(page, `<pixel-canvas id="p" effects="grid(2, transparent)"><canvas data-source></canvas></pixel-canvas>`, white);
+  const alpha = await page.evaluate(() => {
+    const c = document.getElementById("p").canvas;
+    const d = c.getContext("2d").getImageData(0, 0, 4, 4).data;
+    return [0, 1, 4, 5].map((i) => d[i * 4 + 3]); // (0,0) (1,0) (0,1) (1,1)
+  });
+  expect(alpha).toEqual([0, 0, 0, 255]);
+});
+
 test("definePixelEffect makes an effect usable both ways; a later definition redraws", async ({ page }) => {
   await setup(
     page,
