@@ -5,12 +5,12 @@ one line per row, and a key saying what each character's color is. Blank
 lines separate animation frames, played at `fps`. It shows itself as a
 crisp, scaled-up image, and it can be the source of a
 [`<pixel-canvas>`](../pixel-canvas/readme.md), so every
-[effect](../../README.md#effects) applies. Part of [pixelable](../../README.md).
+[effect](../../README.md#effects) applies. Part of [canvas-fx](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/canvas-fx/global.mjs"></script>
 
 <pixel-sprite colors=". transparent; # #3b2d1f; o gold" fps="6" alt="A spinning coin">
   .####.

@@ -2,6 +2,10 @@
 
 ## 0.0.0 — split out of domkit (unreleased)
 
+**Renamed `pixelable` to `canvas-fx`** (package and repo, 2026-10-04,
+before any release; the elements keep their names, `<pixel-canvas>` and
+the rest). Import paths are `@johnhenry/canvas-fx/…`.
+
 The pixel effects family, split out of
 [`@johnhenry/domkit`](https://github.com/johnhenry/domkit) (where it was
 `src/pixelable/`) into its own package, with its history. It was never
@@ -33,7 +37,7 @@ published to npm under any name, so `0.0.0` is its first version; domkit
   still interactive, with the proposed HTML-in-canvas API; elsewhere the
   content shows as it is: 3fa83ef (was johnhenry/domkit#43, a draft).
 
-**Added since the split** (pixelable#1):
+**Added since the split** (canvas-fx#1):
 
 - **`<pixel-canvas gpu>`: whole chains on the GPU.** The source is uploaded
   once (an image, video, or canvas with `texImage2D`; live HTML with
@@ -83,10 +87,10 @@ published to npm under any name, so `0.0.0` is its first version; domkit
 
 **Changed in the split:**
 
-- **Import paths are `@johnhenry/pixelable/…`,** not
-  `@johnhenry/domkit/pixelable/…` (`@johnhenry/pixelable/global.mjs`,
-  `@johnhenry/pixelable/pixel-canvas`, `@johnhenry/pixelable/effects.mjs`).
-  The package root, `@johnhenry/pixelable`, exports every class
+- **Import paths are `@johnhenry/canvas-fx/…`,** not
+  `@johnhenry/domkit/pixelable/…` (`@johnhenry/canvas-fx/global.mjs`,
+  `@johnhenry/canvas-fx/pixel-canvas`, `@johnhenry/canvas-fx/effects.mjs`).
+  The package root, `@johnhenry/canvas-fx`, exports every class
   unregistered plus the effect toolkit.
 - **`--domkit-sprite-scale` is now `--pixel-sprite-scale`.**
 - **The generated `effects.d.mts` declared `readonly get params()`,** which

@@ -2,7 +2,7 @@
 //   1. relative `import`/`from`/`src=`/`href=` references in src/ and demo/
 //      (.mjs/.html/.htm) resolve to a real file;
 //   2. relative Markdown links in every .md file resolve to a real file;
-//   3. every `@johnhenry/pixelable/<subpath>` mentioned anywhere (README
+//   3. every `@johnhenry/canvas-fx/<subpath>` mentioned anywhere (README
 //      snippets, CDN URLs, import examples) resolves through package.json's
 //      own "exports" map to a real file.
 // Renames have broken all three kinds of reference before (stale CDN paths
@@ -105,7 +105,7 @@ for (const file of files.filter((f) => f.endsWith(".md"))) {
 }
 
 // 3. Package subpaths, wherever they're mentioned.
-const SUBPATH = /@johnhenry\/pixelable\/([A-Za-z0-9._\/-]*[A-Za-z0-9_-])/g;
+const SUBPATH = /@johnhenry\/canvas-fx\/([A-Za-z0-9._\/-]*[A-Za-z0-9_-])/g;
 for (const file of files.filter((f) => /\.(md|mjs|html?)$/.test(f))) {
   if (file.endsWith("CHANGELOG.md")) continue; // history, not instructions
   const text = await readFile(file, "utf8");
@@ -114,7 +114,7 @@ for (const file of files.filter((f) => /\.(md|mjs|html?)$/.test(f))) {
     const target = resolveExport(subpath);
     if (!target) report(file, subpath, "not matched by package.json exports");
     else if (!(await exists(join(ROOT, target)))) {
-      report(file, `@johnhenry/pixelable/${subpath}`, `resolves to missing ${target}`);
+      report(file, `@johnhenry/canvas-fx/${subpath}`, `resolves to missing ${target}`);
     }
   }
 }

@@ -6,7 +6,7 @@ Every stable element's attributes, properties, methods, events, and CSS custom p
 
 ## `<pixel-adjust>`
 
-A pixel effect: brightness, contrast, saturation, and hue. [Guide](../src/pixel-adjust/readme.md) · module `@johnhenry/pixelable/pixel-adjust`
+A pixel effect: brightness, contrast, saturation, and hue. [Guide](../src/pixel-adjust/readme.md) · module `@johnhenry/canvas-fx/pixel-adjust`
 
 **Attributes**
 
@@ -20,7 +20,7 @@ A pixel effect: brightness, contrast, saturation, and hue. [Guide](../src/pixel-
 
 ## `<pixel-canvas>`
 
-Pixel effects on any image, video, canvas, or pixel sprite. [Guide](../src/pixel-canvas/readme.md) · module `@johnhenry/pixelable/pixel-canvas`
+Pixel effects on any image, video, canvas, or pixel sprite. [Guide](../src/pixel-canvas/readme.md) · module `@johnhenry/canvas-fx/pixel-canvas`
 
 **Attributes**
 
@@ -84,7 +84,7 @@ Pixel effects on any image, video, canvas, or pixel sprite. [Guide](../src/pixel
 
 ## `<pixel-chroma-key>`
 
-A pixel effect: make a color transparent (green screen). [Guide](../src/pixel-chroma-key/readme.md) · module `@johnhenry/pixelable/pixel-chroma-key`
+A pixel effect: make a color transparent (green screen). [Guide](../src/pixel-chroma-key/readme.md) · module `@johnhenry/canvas-fx/pixel-chroma-key`
 
 **Attributes**
 
@@ -97,7 +97,7 @@ A pixel effect: make a color transparent (green screen). [Guide](../src/pixel-ch
 
 ## `<pixel-crt>`
 
-A pixel effect: an old CRT screen. [Guide](../src/pixel-crt/readme.md) · module `@johnhenry/pixelable/pixel-crt`
+A pixel effect: an old CRT screen. [Guide](../src/pixel-crt/readme.md) · module `@johnhenry/canvas-fx/pixel-crt`
 
 **Attributes**
 
@@ -110,7 +110,7 @@ A pixel effect: an old CRT screen. [Guide](../src/pixel-crt/readme.md) · module
 
 ## `<pixel-glitch>`
 
-A pixel effect: animated digital glitches. [Guide](../src/pixel-glitch/readme.md) · module `@johnhenry/pixelable/pixel-glitch`
+A pixel effect: animated digital glitches. [Guide](../src/pixel-glitch/readme.md) · module `@johnhenry/canvas-fx/pixel-glitch`
 
 **Attributes**
 
@@ -122,7 +122,7 @@ A pixel effect: animated digital glitches. [Guide](../src/pixel-glitch/readme.md
 
 ## `<pixel-glyphs>`
 
-A pixel effect: the image as text characters (ASCII art). [Guide](../src/pixel-glyphs/readme.md) · module `@johnhenry/pixelable/pixel-glyphs`
+A pixel effect: the image as text characters (ASCII art). [Guide](../src/pixel-glyphs/readme.md) · module `@johnhenry/canvas-fx/pixel-glyphs`
 
 **Attributes**
 
@@ -138,7 +138,7 @@ A pixel effect: the image as text characters (ASCII art). [Guide](../src/pixel-g
 
 ## `<pixel-grid>`
 
-A pixel effect: grid lines between cells. [Guide](../src/pixel-grid/readme.md) · module `@johnhenry/pixelable/pixel-grid`
+A pixel effect: grid lines between cells. [Guide](../src/pixel-grid/readme.md) · module `@johnhenry/canvas-fx/pixel-grid`
 
 **Attributes**
 
@@ -151,7 +151,7 @@ A pixel effect: grid lines between cells. [Guide](../src/pixel-grid/readme.md) �
 
 ## `<pixel-halftone>`
 
-A pixel effect: halftone dots, like print. [Guide](../src/pixel-halftone/readme.md) · module `@johnhenry/pixelable/pixel-halftone`
+A pixel effect: halftone dots, like print. [Guide](../src/pixel-halftone/readme.md) · module `@johnhenry/canvas-fx/pixel-halftone`
 
 **Attributes**
 
@@ -165,7 +165,7 @@ A pixel effect: halftone dots, like print. [Guide](../src/pixel-halftone/readme.
 
 ## `<pixel-lens>`
 
-A pixel effect: a magnifying glass at the pointer. [Guide](../src/pixel-lens/readme.md) · module `@johnhenry/pixelable/pixel-lens`
+A pixel effect: a magnifying glass at the pointer. [Guide](../src/pixel-lens/readme.md) · module `@johnhenry/canvas-fx/pixel-lens`
 
 **Attributes**
 
@@ -177,7 +177,7 @@ A pixel effect: a magnifying glass at the pointer. [Guide](../src/pixel-lens/rea
 
 ## `<pixel-mosaic>`
 
-A pixel effect: pixelate into blocks of one color. [Guide](../src/pixel-mosaic/readme.md) · module `@johnhenry/pixelable/pixel-mosaic`
+A pixel effect: pixelate into blocks of one color. [Guide](../src/pixel-mosaic/readme.md) · module `@johnhenry/canvas-fx/pixel-mosaic`
 
 **Attributes**
 
@@ -188,7 +188,7 @@ A pixel effect: pixelate into blocks of one color. [Guide](../src/pixel-mosaic/r
 
 ## `<pixel-outline>`
 
-A pixel effect: line art from edges. [Guide](../src/pixel-outline/readme.md) · module `@johnhenry/pixelable/pixel-outline`
+A pixel effect: line art from edges. [Guide](../src/pixel-outline/readme.md) · module `@johnhenry/canvas-fx/pixel-outline`
 
 **Attributes**
 
@@ -201,7 +201,7 @@ A pixel effect: line art from edges. [Guide](../src/pixel-outline/readme.md) · 
 
 ## `<pixel-palette>`
 
-A pixel effect: limit colors to a palette, with dithering. [Guide](../src/pixel-palette/readme.md) · module `@johnhenry/pixelable/pixel-palette`
+A pixel effect: limit colors to a palette, with dithering. [Guide](../src/pixel-palette/readme.md) · module `@johnhenry/canvas-fx/pixel-palette`
 
 **Attributes**
 
@@ -220,7 +220,7 @@ A pixel effect: limit colors to a palette, with dithering. [Guide](../src/pixel-
 
 ## `<pixel-shader>`
 
-A pixel effect written as a GLSL fragment shader, run on the GPU. [Guide](../src/pixel-shader/readme.md) · module `@johnhenry/pixelable/pixel-shader`
+A pixel effect written as a GLSL fragment shader, run on the GPU. [Guide](../src/pixel-shader/readme.md) · module `@johnhenry/canvas-fx/pixel-shader`
 
 **Attributes**
 
@@ -243,7 +243,7 @@ A pixel effect written as a GLSL fragment shader, run on the GPU. [Guide](../src
 
 ## `<pixel-spotlight>`
 
-A pixel effect: a spotlight that follows the pointer. [Guide](../src/pixel-spotlight/readme.md) · module `@johnhenry/pixelable/pixel-spotlight`
+A pixel effect: a spotlight that follows the pointer. [Guide](../src/pixel-spotlight/readme.md) · module `@johnhenry/canvas-fx/pixel-spotlight`
 
 **Attributes**
 
@@ -256,7 +256,7 @@ A pixel effect: a spotlight that follows the pointer. [Guide](../src/pixel-spotl
 
 ## `<pixel-sprite>`
 
-Pixel art written as text, with animation frames. [Guide](../src/pixel-sprite/readme.md) · module `@johnhenry/pixelable/pixel-sprite`
+Pixel art written as text, with animation frames. [Guide](../src/pixel-sprite/readme.md) · module `@johnhenry/canvas-fx/pixel-sprite`
 
 **Attributes**
 
@@ -301,7 +301,7 @@ Pixel art written as text, with animation frames. [Guide](../src/pixel-sprite/re
 
 ## `<pixel-wave>`
 
-A pixel effect: an animated wave. [Guide](../src/pixel-wave/readme.md) · module `@johnhenry/pixelable/pixel-wave`
+A pixel effect: an animated wave. [Guide](../src/pixel-wave/readme.md) · module `@johnhenry/canvas-fx/pixel-wave`
 
 **Attributes**
 

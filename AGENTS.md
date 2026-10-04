@@ -1,6 +1,6 @@
 # Agent playbook
 
-`@johnhenry/pixelable`: pixel effects for images, video, canvases, and live
+`@johnhenry/canvas-fx`: pixel effects for images, video, canvases, and live
 HTML, written as HTML. Single package, Node >= 26 for the tooling, browser
 code tested with Playwright in Chromium, Firefox, and WebKit (plus a
 Chromium project with the HTML-in-canvas flag on). Ships source; no build
@@ -11,7 +11,7 @@ step. Split out of `@johnhenry/domkit`, whose conventions it keeps.
 ## The verification loop (before every push)
 
 1. `npm test`: every `.mjs` parses, every relative reference and
-   `@johnhenry/pixelable/<path>` resolves through `exports`, `no-undef`
+   `@johnhenry/canvas-fx/<path>` resolves through `exports`, `no-undef`
    lint, and the generated declarations type-check through the package's
    own paths (`test/types`).
 2. `npm run test:browser`: Playwright, `test/browser/*.spec.mjs`, in every
@@ -27,7 +27,7 @@ step. Split out of `@johnhenry/domkit`, whose conventions it keeps.
    `/demo/` and the element's `demo.html`. Pixel tests check pixels, but
    only a look catches "correct and ugly".
 5. `npm pack --dry-run`, then a genuinely fresh clone:
-   `git clone . /tmp/pixelable-verifyN && cd $_ && npm ci && npm test`.
+   `git clone . /tmp/canvas-fx-verifyN && cd $_ && npm ci && npm test`.
 
 ## Repo-specific gotchas
 

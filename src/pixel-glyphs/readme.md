@@ -6,12 +6,12 @@ that best matches it, chosen from an atlas measured from the real font:
 by **brightness** (how much ink a character has) or by **shape** (where its
 ink is, so a diagonal edge gets `/`). Use it as `glyphs(…)` in a
 [`<pixel-canvas>`](../pixel-canvas/readme.md)'s `effects`, or as this
-element wrapped around the source. Part of [pixelable](../../README.md).
+element wrapped around the source. Part of [canvas-fx](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/canvas-fx/global.mjs"></script>
 
 <!-- Colored characters, each cell in its own color -->
 <pixel-canvas width="320" effects="glyphs(6x10)">

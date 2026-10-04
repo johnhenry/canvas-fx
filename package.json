@@ -1,5 +1,5 @@
 {
-  "name": "@johnhenry/pixelable",
+  "name": "@johnhenry/canvas-fx",
   "version": "0.0.0",
   "description": "Pixel effects for images, video, canvases, and live HTML, written as HTML: <pixel-canvas effects=\"mosaic(4) palette(gameboy)\">. Custom elements shipped as source, no build step.",
   "type": "module",
@@ -40,10 +40,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/johnhenry/pixelable.git"
+    "url": "git+https://github.com/johnhenry/canvas-fx.git"
   },
-  "homepage": "https://opensource.johnhenry.me/pixelable/",
-  "bugs": "https://github.com/johnhenry/pixelable/issues",
+  "homepage": "https://opensource.johnhenry.me/canvas-fx/",
+  "bugs": "https://github.com/johnhenry/canvas-fx/issues",
   "engines": {
     "node": ">=26.0.0"
   },

@@ -1,5 +1,5 @@
 // Automated accessibility audits (axe-core) for the family's elements,
-// complementing the hand-written role/label assertions in pixelable.spec.mjs.
+// complementing the hand-written role/label assertions in pixel-canvas.spec.mjs.
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mount } from "./helpers.mjs";

@@ -4,12 +4,12 @@ A magnifying glass that follows the pointer: inside a circle around it, the
 image is enlarged `zoom` times; elsewhere, and while the pointer is away,
 it's unchanged. Use it as `lens(…)` in a
 [`<pixel-canvas>`](../pixel-canvas/readme.md)'s `effects`, or as this
-element wrapped around the source. Part of [pixelable](../../README.md).
+element wrapped around the source. Part of [canvas-fx](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/canvas-fx/global.mjs"></script>
 
 <pixel-canvas width="320" effects="lens(32, 3)">
   <img src="map.png" alt="A city map" />

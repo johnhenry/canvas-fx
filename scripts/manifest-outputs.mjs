@@ -14,7 +14,7 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const REPO = "https://github.com/johnhenry/pixelable/tree/main";
+const REPO = "https://github.com/johnhenry/canvas-fx/tree/main";
 const GENERATED = "// Generated from custom-elements.json by scripts/manifest-outputs.mjs.\n// Do not edit: change the JSDoc in index.mjs and run `npm run manifest`.\n";
 const VALID_TAG = /^[a-z][a-z0-9]*-[a-z0-9-]*$/;
 
@@ -211,7 +211,7 @@ const sections = [...elements]
     const dir = dirname(path);
     return [
       `## \`<${d.tagName}>\``,
-      `${cell(d.summary ?? d.description)} [Guide](../${dir}/readme.md) · module \`@johnhenry/pixelable/${dir.replace(/^src\//, "")}\``,
+      `${cell(d.summary ?? d.description)} [Guide](../${dir}/readme.md) · module \`@johnhenry/canvas-fx/${dir.replace(/^src\//, "")}\``,
       apiTables(d, (title) => `**${title}**\n\n`),
     ].join("\n\n");
   });

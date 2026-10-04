@@ -30,7 +30,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-adjust"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-adjust"
         }
       ]
     },
@@ -85,7 +85,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-canvas"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-canvas"
         }
       ]
     },
@@ -114,7 +114,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-chroma-key"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-chroma-key"
         }
       ]
     },
@@ -143,7 +143,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-crt"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-crt"
         }
       ]
     },
@@ -168,7 +168,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-glitch"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-glitch"
         }
       ]
     },
@@ -209,7 +209,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-glyphs"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-glyphs"
         }
       ]
     },
@@ -238,7 +238,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-grid"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-grid"
         }
       ]
     },
@@ -271,7 +271,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-halftone"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-halftone"
         }
       ]
     },
@@ -296,7 +296,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-lens"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-lens"
         }
       ]
     },
@@ -317,7 +317,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-mosaic"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-mosaic"
         }
       ]
     },
@@ -346,7 +346,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-outline"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-outline"
         }
       ]
     },
@@ -375,7 +375,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-palette"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-palette"
         }
       ]
     },
@@ -392,7 +392,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-shader"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-shader"
         }
       ]
     },
@@ -421,7 +421,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-spotlight"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-spotlight"
         }
       ]
     },
@@ -450,7 +450,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-sprite"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-sprite"
         }
       ]
     },
@@ -479,7 +479,7 @@
       "references": [
         {
           "name": "Documentation",
-          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-wave"
+          "url": "https://github.com/johnhenry/canvas-fx/tree/main/src/pixel-wave"
         }
       ]
     }

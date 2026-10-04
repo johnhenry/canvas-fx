@@ -5,12 +5,12 @@ the pointer the image is unchanged, beyond `radius + softness` it's darkened
 by `dim`, with a smooth falloff between. While the pointer is away, the
 image is unchanged. Use it as `spotlight(…)` in a
 [`<pixel-canvas>`](../pixel-canvas/readme.md)'s `effects`, or as this
-element wrapped around the source. Part of [pixelable](../../README.md).
+element wrapped around the source. Part of [canvas-fx](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/canvas-fx/global.mjs"></script>
 
 <pixel-canvas width="320" effects="spotlight(40, 20, 0.8)">
   <img src="painting.jpg" alt="A painting" />

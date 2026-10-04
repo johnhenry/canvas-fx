@@ -5,12 +5,12 @@ between tiles or the cells of an LED panel. Use it as `grid(size, color, line)` 
 [`<pixel-canvas>`](../pixel-canvas/readme.md)'s `effects`, or as this
 element, usually around a
 [`<pixel-mosaic>`](../pixel-mosaic/readme.md) of the same size. Part of
-[pixelable](../../README.md).
+[canvas-fx](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/canvas-fx/global.mjs"></script>
 
 <pixel-canvas effects="mosaic(8) grid(8, rgb(0 0 0 / 0.5))">
   <img src="photo.jpg" alt="A photo as tiles" />

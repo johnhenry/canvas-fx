@@ -1,4 +1,4 @@
-// Registers every pixelable element: <pixel-canvas>, <pixel-sprite>, and
+// Registers every canvas-fx element: <pixel-canvas>, <pixel-sprite>, and
 // the effect elements. (<pixel-canvas> alone is enough for the effects attribute.)
 import "./pixel-canvas/global.mjs";
 import "./pixel-sprite/global.mjs";

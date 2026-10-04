@@ -1,13 +1,13 @@
 // Type-checked (never run) by `npm test`: consumes the generated
 // declarations through the package's own export paths, the way a user would.
-import PixelCanvas from "@johnhenry/pixelable/pixel-canvas";
-import "@johnhenry/pixelable/global.mjs";
-import { definePixelEffect } from "@johnhenry/pixelable/effects.mjs";
-import { PixelSprite, PixelLens } from "@johnhenry/pixelable";
-import { encodeGIF } from "@johnhenry/pixelable/gif.mjs";
-import { gpuShader, gpuAvailable } from "@johnhenry/pixelable/gpu.mjs";
-import { interpolateEffects, unquote } from "@johnhenry/pixelable/effects.mjs";
-import { glyphAtlas, chooseGlyphs, glyphText } from "@johnhenry/pixelable/pixel-glyphs/glyphs.mjs";
+import PixelCanvas from "@johnhenry/canvas-fx/pixel-canvas";
+import "@johnhenry/canvas-fx/global.mjs";
+import { definePixelEffect } from "@johnhenry/canvas-fx/effects.mjs";
+import { PixelSprite, PixelLens } from "@johnhenry/canvas-fx";
+import { encodeGIF } from "@johnhenry/canvas-fx/gif.mjs";
+import { gpuShader, gpuAvailable } from "@johnhenry/canvas-fx/gpu.mjs";
+import { interpolateEffects, unquote } from "@johnhenry/canvas-fx/effects.mjs";
+import { glyphAtlas, chooseGlyphs, glyphText } from "@johnhenry/canvas-fx/pixel-glyphs/glyphs.mjs";
 
 const canvas = document.querySelector("pixel-canvas");
 if (canvas) {
