@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **The gallery shows each example's source beside it** (`demo/`, not
+  published): the exact file each card's frame runs, highlighted by
+  domkit's `<code-color>`, with a checkbox to hide it.
+
 ## 0.0.0 — 2026-10-04 — split out of domkit
 
 The pixel effects family, split out of

@@ -101,3 +101,36 @@ footer {
   font-size: 13px;
   color: #888;
 }
+/* Each card's source beside it (demo/source.mjs). Cards take a full row so
+   the example and its source each get half; narrow screens stack them. */
+.toggle-source { font-size: 13px; display: inline-flex; gap: 6px; align-items: center; margin-top: 12px; }
+:root:not([data-hide-source]) .grid { grid-template-columns: 1fr; }
+:root:not([data-hide-source]) .card { display: grid; grid-template-columns: 1fr; container-type: inline-size; }
+:root[data-hide-source] .card .source { display: none; }
+.card .source {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-page);
+}
+.card .source a { font: 12px ui-monospace, monospace; padding: 6px 12px; color: var(--accent); }
+.card .source code-color { display: block; min-height: 0; flex: 1; }
+.card .source pre {
+  margin: 0;
+  padding: 8px 12px 12px;
+  font: 12px/1.45 ui-monospace, monospace;
+  overflow: auto;
+  overflow-anchor: none;
+  height: 100%;
+  max-height: 220px;
+}
+.card.tall .source pre { max-height: 320px; }
+.card.wide.tall .source pre { max-height: 760px; }
+@media (min-width: 900px) {
+  :root:not([data-hide-source]) .card { grid-template-columns: 1fr 1fr; align-content: start; }
+  :root:not([data-hide-source]) .card > :not(iframe, .source) { grid-column: 1 / -1; }
+  :root:not([data-hide-source]) .card .source { border-left: 1px solid var(--border); }
+  .card .source pre { max-height: none; height: 0; flex: 1 1 auto; }
+  .card .source code-color { display: flex; flex-direction: column; }
+}
