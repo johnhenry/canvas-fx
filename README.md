@@ -63,8 +63,7 @@ event, and CSS part.
 [`@johnhenry/domkit`](https://github.com/johnhenry/domkit) (as
 `src/pixelable/`, and before that `experimental/pixel-shader` and the
 `pixelshader.component` that domkit 0.0.4 shipped, from `johnhenry/lib`) and
-split out into this package with its history, as `pixelable` (renamed
-`canvas-fx` before its first release; the elements keep their `pixel-` names). This family was never
+split out into this package with its history. This family was never
 published to npm under any name: `0.0.0` is its first version.
 
 ## Effects

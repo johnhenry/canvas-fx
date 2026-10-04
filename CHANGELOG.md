@@ -1,10 +1,6 @@
 # Changelog
 
-## 0.0.0 — split out of domkit (unreleased)
-
-**Renamed `pixelable` to `canvas-fx`** (package and repo, 2026-10-04,
-before any release; the elements keep their names, `<pixel-canvas>` and
-the rest). Import paths are `@johnhenry/canvas-fx/…`.
+## 0.0.0 — 2026-10-04 — split out of domkit
 
 The pixel effects family, split out of
 [`@johnhenry/domkit`](https://github.com/johnhenry/domkit) (where it was
