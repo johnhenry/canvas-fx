@@ -51,6 +51,13 @@ export default class PixelCanvas extends HTMLElement {
    * that change over time need `fps` (or a playing video) to animate while
    * it captures. `loop`: 0 repeats forever, -1 plays once. */
   toGIF(options?: { duration?: number, fps?: number, frames?: number, loop?: number }): Promise<Blob>;
+  /** The result as text: with a `glyphs()` effect (or `<pixel-glyphs>`) in
+   * the chain, the characters it chose, one line per row; otherwise the
+   * result converted with `options` (the same as `glyphs()`'s parameters:
+   * `cell`, `chars`, `font`, `mode`, `background`). It waits for a redraw,
+   * which runs on the CPU, where the characters are known. Resolves to ""
+   * if there's nothing to draw. */
+  toText(options?: { cell?: string, chars?: string, font?: string, mode?: string, background?: string }): Promise<string>;
   /** Draw now, instead of on the next frame. Returns whether it drew. */
   render(): boolean;
   /** The result as an image file, like `HTMLCanvasElement.toBlob()`. */

@@ -129,6 +129,14 @@
         },
         {
           "kind": "js",
+          "name": "PixelGlyphs",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-glyphs/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
           "name": "definePixelEffect",
           "declaration": {
             "name": "definePixelEffect",
@@ -694,6 +702,48 @@
             },
             {
               "kind": "method",
+              "name": "toText",
+              "parameters": [
+                {
+                  "name": "options",
+                  "default": "{}",
+                  "optional": true,
+                  "type": {
+                    "text": "{ cell?: string, chars?: string, font?: string, mode?: string, background?: string }"
+                  }
+                }
+              ],
+              "description": "The result as text: with a `glyphs()` effect (or `<pixel-glyphs>`) in\nthe chain, the characters it chose, one line per row; otherwise the\nresult converted with `options` (the same as `glyphs()`'s parameters:\n`cell`, `chars`, `font`, `mode`, `background`). It waits for a redraw,\nwhich runs on the CPU, where the characters are known. Resolves to \"\"\nif there's nothing to draw.",
+              "return": {
+                "type": {
+                  "text": "Promise<string>"
+                }
+              }
+            },
+            {
+              "kind": "field",
+              "name": "#textRequests",
+              "privacy": "private",
+              "type": {
+                "text": "array"
+              },
+              "default": "[]"
+            },
+            {
+              "kind": "method",
+              "name": "#answerText",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "context"
+                },
+                {
+                  "name": "image"
+                }
+              ]
+            },
+            {
+              "kind": "method",
               "name": "#snapshot",
               "privacy": "private"
             },
@@ -1213,6 +1263,15 @@
           "tagName": "pixel-canvas",
           "customElement": true,
           "summary": "Pixel effects on any image, video, canvas, or pixel sprite."
+        },
+        {
+          "kind": "function",
+          "name": "resolve",
+          "parameters": [
+            {
+              "name": "calls"
+            }
+          ]
         }
       ],
       "exports": [
@@ -1467,6 +1526,111 @@
           "declaration": {
             "name": "PixelGlitch",
             "module": "src/pixel-glitch/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-glyphs/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-glyphs",
+          "declaration": {
+            "name": "PixelGlyphs",
+            "module": "src/pixel-glyphs/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-glyphs/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Turns the image into text characters: each cell becomes the character that best matches it, from a font atlas measured from the real font. The element form of `glyphs(cell, chars, font, mode, color, background)`.",
+          "name": "PixelGlyphs",
+          "members": [
+            {
+              "kind": "field",
+              "name": "effect",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ name: \"glyphs\", params, apply, gpu }"
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "string"
+              },
+              "description": "Cell size in working pixels, `8x12` (the default) or `10` for square. 2–32 a side.",
+              "name": "cell"
+            },
+            {
+              "type": {
+                "text": "string"
+              },
+              "description": "The characters to use: a set (`ramp`, the default for brightness; `ascii`, the default for shape; `blocks`; `binary`) or your own, quoted when it has spaces or commas (`' .:#'`).",
+              "name": "chars"
+            },
+            {
+              "type": {
+                "text": "string"
+              },
+              "description": "A CSS font family. Default `monospace`.",
+              "name": "font"
+            },
+            {
+              "type": {
+                "text": "\"brightness\" | \"shape\""
+              },
+              "description": "Choose by how much ink a character has (`brightness`, the default) or where its ink is (`shape`: lines and edges get matching characters).",
+              "name": "mode"
+            },
+            {
+              "type": {
+                "text": "string"
+              },
+              "description": "The ink: `source` (each cell's own color, the default) or a CSS color.",
+              "name": "color"
+            },
+            {
+              "type": {
+                "text": "string"
+              },
+              "description": "Behind the characters: `none` (transparent, the default) or a CSS color. On a light background, darkness is inked.",
+              "name": "background"
+            },
+            {
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Pass the image through unchanged.",
+              "name": "disabled"
+            }
+          ],
+          "superclass": {
+            "name": "PixelEffect",
+            "module": "/src/effects.mjs"
+          },
+          "tagName": "pixel-glyphs",
+          "customElement": true,
+          "summary": "A pixel effect: the image as text characters (ASCII art)."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelGlyphs",
+            "module": "src/pixel-glyphs/index.mjs"
           }
         }
       ]

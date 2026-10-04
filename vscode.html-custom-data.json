@@ -173,6 +173,47 @@
       ]
     },
     {
+      "name": "pixel-glyphs",
+      "description": "A pixel effect: the image as text characters (ASCII art).",
+      "attributes": [
+        {
+          "name": "cell",
+          "description": "Cell size in working pixels, `8x12` (the default) or `10` for square. 2–32 a side."
+        },
+        {
+          "name": "chars",
+          "description": "The characters to use: a set (`ramp`, the default for brightness; `ascii`, the default for shape; `blocks`; `binary`) or your own, quoted when it has spaces or commas (`' .:#'`)."
+        },
+        {
+          "name": "font",
+          "description": "A CSS font family. Default `monospace`."
+        },
+        {
+          "name": "mode",
+          "description": "Choose by how much ink a character has (`brightness`, the default) or where its ink is (`shape`: lines and edges get matching characters)."
+        },
+        {
+          "name": "color",
+          "description": "The ink: `source` (each cell's own color, the default) or a CSS color."
+        },
+        {
+          "name": "background",
+          "description": "Behind the characters: `none` (transparent, the default) or a CSS color. On a light background, darkness is inked."
+        },
+        {
+          "name": "disabled",
+          "description": "Pass the image through unchanged.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-glyphs"
+        }
+      ]
+    },
+    {
       "name": "pixel-grid",
       "description": "A pixel effect: grid lines between cells.",
       "attributes": [

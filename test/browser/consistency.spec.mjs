@@ -20,6 +20,7 @@ const ELEMENTS = {
   "pixel-shader": '<script type="x-shader/x-fragment">color = pixel;</script>',
   "pixel-lens": "",
   "pixel-spotlight": "",
+  "pixel-glyphs": "",
 };
 const MODULES = Object.keys(ELEMENTS).map((path) => `src/${path}/global.mjs`);
 

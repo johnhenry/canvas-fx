@@ -15,3 +15,4 @@ import "./pixel-wave/global.mjs";
 import "./pixel-shader/global.mjs";
 import "./pixel-lens/global.mjs";
 import "./pixel-spotlight/global.mjs";
+import "./pixel-glyphs/global.mjs";

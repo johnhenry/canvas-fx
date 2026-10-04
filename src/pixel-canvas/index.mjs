@@ -32,6 +32,7 @@
 //   lens(), spotlight(), and your own effects follow the pointer
 //   a <pixel-canvas> can be another's source (it fires `framechange`)
 //   captureStream(), record() (video), toGIF() (an animated GIF)
+//   toText(): the result as text characters (with glyphs(), its characters)
 //
 // The
 // light-DOM content stays in the document (so the image loads and stays
@@ -44,6 +45,8 @@ import { effectRegistry, getPixelEffect, gpuPass, interpolateEffects, parseEffec
 import { dominantColors, toHex } from "../quantize.mjs";
 import { gpuAvailable, pipelineFor, sharedContext } from "../gpu.mjs";
 import { encodeGIF } from "../gif.mjs";
+import { settings as glyphSettings } from "../pixel-glyphs/effect.mjs";
+import { chooseGlyphs, glyphText } from "../pixel-glyphs/glyphs.mjs";
 
 const NATIVE_SOURCES = ["img", "video", "canvas"];
 // HTML-in-canvas (WICG; in Chromium behind a flag or an origin trial).
@@ -458,6 +461,51 @@ export default class PixelCanvas extends HTMLElement {
     return new Blob([encodeGIF(images, { delay: 1000 / fps, loop })], { type: "image/gif" });
   }
 
+  /**
+   * The result as text: with a `glyphs()` effect (or `<pixel-glyphs>`) in
+   * the chain, the characters it chose, one line per row; otherwise the
+   * result converted with `options` (the same as `glyphs()`'s parameters:
+   * `cell`, `chars`, `font`, `mode`, `background`). It waits for a redraw,
+   * which runs on the CPU, where the characters are known. Resolves to ""
+   * if there's nothing to draw.
+   * @param {{ cell?: string, chars?: string, font?: string, mode?: string, background?: string }} [options]
+   * @returns {Promise<string>}
+   */
+  toText(options = {}) {
+    return new Promise((resolve) => {
+      const request = { options, resolve };
+      this.#textRequests.push(request);
+      const unanswered = () => {
+        const i = this.#textRequests.indexOf(request);
+        if (i < 0) return;
+        this.#textRequests.splice(i, 1);
+        resolve("");
+      };
+      if (this.#htmlCanvas) {
+        this.#htmlCanvas.requestPaint();
+        setTimeout(unanswered, 1000);
+      } else {
+        this.render();
+        unanswered();
+      }
+    });
+  }
+  #textRequests = [];
+
+  // Answer toText() from a CPU draw: the text glyphs() chose, or the
+  // result converted.
+  #answerText(context, image) {
+    for (const { options, resolve } of this.#textRequests.splice(0)) {
+      const explicit = Object.values(options).some((v) => v !== undefined);
+      if (typeof context.text === "string" && !explicit) {
+        resolve(context.text);
+        continue;
+      }
+      const s = glyphSettings(Object.fromEntries(Object.entries(options).map(([k, v]) => [k, v == null ? undefined : String(v)])));
+      resolve(glyphText(chooseGlyphs(image, s.atlas, { mode: s.mode, invert: s.invert }), s.chars));
+    }
+  }
+
   // The result now, as ImageData at the working size.
   #snapshot() {
     if (this.#htmlCanvas) {
@@ -593,7 +641,7 @@ export default class PixelCanvas extends HTMLElement {
       const drawable = this.#drawable(source);
       const [naturalWidth, naturalHeight] = this.#natural(source);
       const plan = this.#plan();
-      const steps = this.hasAttribute("gpu") ? this.#gpuSteps(plan, { width, height }) : null;
+      const steps = this.hasAttribute("gpu") && !this.#textRequests.length ? this.#gpuSteps(plan, { width, height }) : null;
       if (steps && gpuAvailable()) {
         // GPU: upload once, run the chain, copy the result across (no read-back).
         const gl = sharedContext();
@@ -627,6 +675,7 @@ export default class PixelCanvas extends HTMLElement {
         this.#canvas.getContext("2d").putImageData(image, 0, 0);
         this.#publishSwatches(image);
         this.#renderer = "cpu";
+        this.#answerText(plan.context, image);
       }
     } catch (error) {
       this.#fail(error);
@@ -853,7 +902,7 @@ export default class PixelCanvas extends HTMLElement {
       else if (h > 0) [width, height] = [Math.max(1, Math.round((box.width / box.height) * h)), h];
       this.#workSize = [width, height];
       const plan = this.#plan();
-      const steps = this.hasAttribute("gpu") && gpuAvailable() ? this.#gpuSteps(plan, { width, height }) : null;
+      const steps = this.hasAttribute("gpu") && gpuAvailable() && !this.#textRequests.length ? this.#gpuSteps(plan, { width, height }) : null;
       const kind = steps ? "webgl2" : "2d";
       if (this.#htmlKind && this.#htmlKind !== kind) {
         // A canvas keeps its first context: start again with a new one.
@@ -895,6 +944,7 @@ export default class PixelCanvas extends HTMLElement {
         context.drawImage(work.canvas, 0, 0, canvas.width, canvas.height);
         this.#publishSwatches(image);
         this.#renderer = "cpu";
+        this.#answerText(plan.context, image);
       }
     } catch (error) {
       // Show the content as it is, and say why.
