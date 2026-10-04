@@ -5,12 +5,10 @@ on:
     branches: [main]
   pull_request:
 
-# Supersede an in-flight run when new commits land on the same ref -- the
-# whole family shares this block so a rapid push sequence never queues N
-# redundant runs.
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+# The family's concurrency-cancel block lives in the reusable workflow
+# (johnhenry/workflows ci.yml@v1, group ci-<workflow>-<ref>). Don't repeat it
+# here: the same group at both levels is rejected as a deadlock before the
+# run starts.
 
 jobs:
   test:
