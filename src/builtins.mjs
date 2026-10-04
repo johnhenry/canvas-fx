@@ -13,8 +13,9 @@ import * as glitch from "./pixel-glitch/effect.mjs";
 import * as wave from "./pixel-wave/effect.mjs";
 import * as lens from "./pixel-lens/effect.mjs";
 import * as spotlight from "./pixel-spotlight/effect.mjs";
+import * as glyphs from "./pixel-glyphs/effect.mjs";
 
-const BUILT_IN = { mosaic, palette, grid, adjust, halftone, outline, crt, "chroma-key": chromaKey, glitch, wave, lens, spotlight };
+const BUILT_IN = { mosaic, palette, grid, adjust, halftone, outline, crt, "chroma-key": chromaKey, glitch, wave, lens, spotlight, glyphs };
 for (const [name, effect] of Object.entries(BUILT_IN)) {
   definePixelEffect(name, effect.apply, { params: effect.params, element: false, gpu: effect.gpu, pointer: effect.pointer });
 }

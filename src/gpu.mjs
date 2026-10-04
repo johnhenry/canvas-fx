@@ -144,6 +144,23 @@ class Pipeline {
     return target;
   }
 
+  // A texture an effect brings along (a font atlas, a lookup table):
+  // `{ texture: ImageData | canvas, key }`, uploaded once per key.
+  #textures = new Map();
+  #texture({ texture, key }) {
+    const { gl } = this;
+    let entry = this.#textures.get(key);
+    if (!entry) {
+      entry = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, entry);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture);
+      this.#filter(gl.NEAREST);
+      this.#textures.set(key, entry);
+    }
+    return entry;
+  }
+
   #filter(filter) {
     const { gl } = this;
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
@@ -171,12 +188,19 @@ class Pipeline {
     gl.uniform1f(location("u_frame"), context.frame);
     const pointer = context.pointer;
     gl.uniform3f(location("u_pointer"), pointer?.x ?? -1, pointer?.y ?? -1, pointer?.inside ? 1 : 0);
+    let unit = 1; // 0 is the image
     for (const [name, value] of Object.entries(uniforms ?? {})) {
       const at = location(name);
       if (at === null) continue;
       if (typeof value === "number") gl.uniform1f(at, value);
       else if (value?.int !== undefined) gl.uniform1i(at, value.int);
       else if (value?.mat3) gl.uniformMatrix3fv(at, false, value.mat3);
+      else if (value?.texture) {
+        gl.activeTexture(gl.TEXTURE0 + unit);
+        gl.bindTexture(gl.TEXTURE_2D, this.#texture(value));
+        gl.uniform1i(at, unit++);
+        gl.activeTexture(gl.TEXTURE0);
+      }
       else if (value instanceof Float32Array) gl.uniform3fv(at, value);
       else if (Array.isArray(value)) gl[`uniform${value.length}f`](at, ...value);
     }

@@ -81,6 +81,8 @@ export const getPixelEffect = (name) => registry.get(name);
  * `"mosaic(4) palette(gameboy, ordered)"` ->
  * `[{ name: "mosaic", args: ["4"] }, { name: "palette", args: ["gameboy", "ordered"] }]`.
  * Parentheses are optional for an effect with no arguments (`outline`).
+ * An argument in quotes (`'…'` or `"…"`) is taken as written, commas,
+ * parentheses, and spaces included; `unquote()` strips the quotes.
  * @param {string} text
  * @returns {{ name: string, args: string[] }[]}
  */
@@ -99,8 +101,19 @@ export function parseEffects(text) {
     if (source[i] === "(") {
       let depth = 0;
       let current = "";
+      let quote = null;
       for (i++; i < source.length; i++) {
         const c = source[i];
+        if (quote) {
+          current += c;
+          if (c === quote) quote = null;
+          continue;
+        }
+        if (c === "'" || c === '"') {
+          quote = c;
+          current += c;
+          continue;
+        }
         if (c === "(") depth++;
         if (c === ")" && depth-- === 0) {
           i++;
@@ -312,4 +325,16 @@ export function interpolateEffects(from, to, t) {
       return mix(old, arg);
     }),
   }));
+}
+
+/**
+ * A parameter without its surrounding quotes, if it has them: `' .:#'` ->
+ * ` .:#` (spaces kept). Unquoted values come back trimmed.
+ * @param {string | undefined | null} value
+ * @returns {string}
+ */
+export function unquote(value) {
+  const text = value ?? "";
+  const match = /^\s*(['"])([\s\S]*)\1\s*$/.exec(text);
+  return match ? match[2] : text.trim();
 }

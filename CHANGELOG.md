@@ -67,6 +67,20 @@ published to npm under any name, so `0.0.0` is its first version; domkit
   (it was skipped). `gpu`, `html`, and `transition` properties mirror their
   attributes.
 
+- **`glyphs()` and `<pixel-glyphs>`: the image as text characters.** Each
+  cell becomes the character that best matches it, from an atlas measured
+  from the real font: by brightness (ink coverage, measured, not the
+  nominal order) or by shape (ink in a 2 × 3 grid, so edges get `/` `\`
+  `|`; text drawn in the same font reads back exactly). Character sets
+  (`ramp`, `ascii`, `blocks`, `binary`, or your own), any font (redrawn
+  when it loads), ink in each cell's color or one color, any background
+  (light backgrounds ink the dark). On the GPU too, matching the CPU.
+- **`toText()`:** the result as text, one line per row: the characters
+  `glyphs()` drew, or the result converted with `glyphs()`'s options.
+- **Quoted effect arguments:** `glyphs(8, ' .,:')` keeps its spaces and
+  commas (`unquote()` in `effects.mjs`). Effects on the GPU can bring their
+  own textures (`{ texture, key }` uniforms).
+
 **Changed in the split:**
 
 - **Import paths are `@johnhenry/pixelable/…`,** not

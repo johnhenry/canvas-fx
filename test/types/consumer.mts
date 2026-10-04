@@ -6,7 +6,8 @@ import { definePixelEffect } from "@johnhenry/pixelable/effects.mjs";
 import { PixelSprite, PixelLens } from "@johnhenry/pixelable";
 import { encodeGIF } from "@johnhenry/pixelable/gif.mjs";
 import { gpuShader, gpuAvailable } from "@johnhenry/pixelable/gpu.mjs";
-import { interpolateEffects } from "@johnhenry/pixelable/effects.mjs";
+import { interpolateEffects, unquote } from "@johnhenry/pixelable/effects.mjs";
+import { glyphAtlas, chooseGlyphs, glyphText } from "@johnhenry/pixelable/pixel-glyphs/glyphs.mjs";
 
 const canvas = document.querySelector("pixel-canvas");
 if (canvas) {
@@ -19,7 +20,8 @@ if (canvas) {
   const gif: Promise<Blob> = canvas.toGIF({ frames: 4, fps: 10 });
   const video: Promise<Blob> = canvas.record({ duration: 1 });
   const stream: MediaStream = canvas.captureStream(30);
-  void renderer, gif, video, stream;
+  const text: Promise<string> = canvas.toText({ cell: "4x8", chars: "blocks" });
+  void renderer, gif, video, stream, text;
   // @ts-expect-error -- source is read-only
   canvas.source = null;
   void palette;
@@ -35,3 +37,7 @@ const available: boolean = gpuAvailable();
 const between = interpolateEffects("mosaic(2)", "mosaic(8)", 0.5);
 const lens: PixelLens = new PixelLens();
 void bytes, shader, available, between, lens;
+const atlas = glyphAtlas([" ", "#"], "monospace", 8, 12);
+const chosen = chooseGlyphs(new ImageData(16, 12), atlas, { mode: "shape" });
+const asText: string = glyphText(chosen, atlas.chars) + unquote("' x'");
+void asText;

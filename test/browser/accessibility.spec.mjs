@@ -22,6 +22,7 @@ const ALL = `
   <pixel-sprite>8</pixel-sprite>
   <pixel-canvas effects="halftone(4) crt()"><img src="/src/pixel-canvas/scene.svg" alt="A sunset, printed"></pixel-canvas>
   <pixel-canvas effects="spotlight(20) lens(10)" gpu><pixel-lens><img src="/src/pixel-canvas/scene.svg" alt="A sunset, magnified"></pixel-lens></pixel-canvas>
+  <pixel-canvas effects="glyphs(6x10)"><img src="/src/pixel-canvas/scene.svg" alt="A sunset, in characters"></pixel-canvas>
   <pixel-canvas html effects="mosaic(2)"><form><label>Name <input name="n"></label><button type="button">Go</button></form></pixel-canvas>`;
 
 test("every element passes axe", async ({ page }) => {

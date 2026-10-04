@@ -82,6 +82,8 @@ export declare const getPixelEffect: (name: string) => Effect | undefined;
  * `"mosaic(4) palette(gameboy, ordered)"` ->
  * `[{ name: "mosaic", args: ["4"] }, { name: "palette", args: ["gameboy", "ordered"] }]`.
  * Parentheses are optional for an effect with no arguments (`outline`).
+ * An argument in quotes (`'…'` or `"…"`) is taken as written, commas,
+ * parentheses, and spaces included; `unquote()` strips the quotes.
  * @param {string} text
  * @returns {{ name: string, args: string[] }[]}
  */
@@ -206,3 +208,10 @@ export declare function interpolateEffects(from: string, to: string, t: number):
     name: string;
     args: string[];
 }[] | null;
+/**
+ * A parameter without its surrounding quotes, if it has them: `' .:#'` ->
+ * ` .:#` (spaces kept). Unquoted values come back trimmed.
+ * @param {string | undefined | null} value
+ * @returns {string}
+ */
+export declare function unquote(value: string | undefined | null): string;

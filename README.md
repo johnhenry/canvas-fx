@@ -82,6 +82,7 @@ published to npm under any name: `0.0.0` is its first version.
 | `wave(amplitude, wavelength, speed)` | [`<pixel-wave>`](src/pixel-wave/readme.md) | Rows rippling along a moving sine wave |
 | `lens(radius, zoom)` | [`<pixel-lens>`](src/pixel-lens/readme.md) | A magnifying glass that follows the pointer |
 | `spotlight(radius, softness, dim)` | [`<pixel-spotlight>`](src/pixel-spotlight/readme.md) | Light around the pointer, the rest dimmed |
+| `glyphs(cell, chars, font, mode, color, background)` | [`<pixel-glyphs>`](src/pixel-glyphs/readme.md) | The image as text characters (ASCII art), by brightness or by shape; `toText()` gives it back as text |
 
 The [`<pixel-canvas>`](src/pixel-canvas/readme.md) draws the result. Its
 source can be an `<img>`, a `<video>`, a `<canvas>`, or a
@@ -92,7 +93,7 @@ interactive, where the browser has
 [HTML-in-canvas](src/pixel-canvas/readme.md#html-content-experimental).
 It also runs whole chains on the GPU (`gpu`), animates between settings
 (`transition="400ms"`), follows the pointer, and records itself as an
-animated GIF (`toGIF()`) or a video (`record()`); its
+animated GIF (`toGIF()`), a video (`record()`), or text (`toText()`); its
 [guide](src/pixel-canvas/readme.md) has each.
 `global.mjs` here registers it and every effect element; for the
 `effects` attribute alone, `pixel-canvas/global.mjs` is enough.

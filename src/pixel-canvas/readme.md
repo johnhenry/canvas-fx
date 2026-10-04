@@ -230,6 +230,13 @@ canvas's, for downloads and uploads:
 const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 ```
 
+**Text:** `await canvas.toText()` gives the result as text characters, one
+line per row: with [`glyphs()`](../pixel-glyphs/readme.md) in the chain,
+the characters it drew; otherwise the result converted with the options you
+pass (`toText({ cell: "4x8", chars: "blocks" })`, the same as `glyphs()`'s
+parameters). It waits for a redraw on the CPU, where the characters are
+known.
+
 **Animated GIF:** `toGIF({ frames, fps, loop })` (or `{ duration, fps }`)
 samples the result `fps` times a second and encodes it, at the working
 size, with no library: pixel art keeps its exact colors (a frame with more
@@ -291,6 +298,7 @@ const video = await canvas.record({ duration: 5 });
 | `captureStream(fps)` | A video stream of the result, like `HTMLCanvasElement.captureStream()`. |
 | `record(options)` | Record the result as a video (WebM where supported, else MP4), for `duration` seconds. Effects that change over time need `fps` (or a playing video) to animate while it records. |
 | `toGIF(options)` | The result as an animated GIF, at the working size: `frames` frames (or `duration` seconds' worth) sampled `fps` times a second. Effects that change over time need `fps` (or a playing video) to animate while it captures. `loop`: 0 repeats forever, -1 plays once. |
+| `toText(options)` | The result as text: with a `glyphs()` effect (or `<pixel-glyphs>`) in the chain, the characters it chose, one line per row; otherwise the result converted with `options` (the same as `glyphs()`'s parameters: `cell`, `chars`, `font`, `mode`, `background`). It waits for a redraw, which runs on the CPU, where the characters are known. Resolves to "" if there's nothing to draw. |
 | `render()` | Draw now, instead of on the next frame. Returns whether it drew. |
 | `toBlob(type, quality)` | The result as an image file, like `HTMLCanvasElement.toBlob()`. |
 | `toDataURL(type, quality)` | The result as a data: URL, like `HTMLCanvasElement.toDataURL()`. |
