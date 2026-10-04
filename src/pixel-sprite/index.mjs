@@ -64,7 +64,7 @@ function parseFrames(text) {
  * @fires pause - The animation paused.
  * @fires framechange - It was redrawn: the frame advanced, or its pixels or colors changed.
  *
- * @cssprop --domkit-sprite-scale - How many screen pixels each sprite pixel takes. Default 8.
+ * @cssprop --pixel-sprite-scale - How many screen pixels each sprite pixel takes. Default 8.
  * @csspart canvas - The `<canvas>` it's drawn on.
  *
  * Invoker commands: `--play`, `--pause`, `--toggle`.
@@ -202,7 +202,7 @@ export default class PixelSprite extends HTMLElement {
     const height = Math.max(0, ...this.#frames.map((rows) => rows.length));
     this.#canvas.width = width;
     this.#canvas.height = height;
-    this.#sizing.textContent = `:host { inline-size: calc(${width}px * var(--domkit-sprite-scale, 8)); }`;
+    this.#sizing.textContent = `:host { inline-size: calc(${width}px * var(--pixel-sprite-scale, 8)); }`;
     this.#label();
     this.#draw();
     this.#start();

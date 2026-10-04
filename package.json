@@ -1,0 +1,58 @@
+{
+  "name": "@johnhenry/pixelable",
+  "version": "0.0.0",
+  "description": "Pixel effects for images, video, canvases, and live HTML, written as HTML: <pixel-canvas effects=\"mosaic(4) palette(gameboy)\">. Custom elements shipped as source, no build step.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./package.json": "./package.json",
+    "./custom-elements.json": "./custom-elements.json",
+    "./vscode.html-custom-data.json": "./vscode.html-custom-data.json",
+    "./*.mjs": "./src/*.mjs",
+    "./*.css": "./src/*.css",
+    "./*": "./src/*/index.mjs"
+  },
+  "files": [
+    "src/",
+    "custom-elements.json",
+    "vscode.html-custom-data.json"
+  ],
+  "customElements": "custom-elements.json",
+  "scripts": {
+    "test": "npm run check",
+    "check": "node scripts/check-syntax.mjs && node scripts/check-links.mjs && eslint . && tsc -p test/types",
+    "test:browser": "playwright test",
+    "manifest": "cem analyze && node scripts/manifest-outputs.mjs && node scripts/types.mjs",
+    "serve": "node scripts/serve.mjs"
+  },
+  "keywords": [
+    "pixel-art",
+    "image-effects",
+    "dithering",
+    "palette",
+    "canvas",
+    "html-in-canvas",
+    "web-components",
+    "custom-elements",
+    "no-build"
+  ],
+  "author": "John Henry",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johnhenry/pixelable.git"
+  },
+  "homepage": "https://opensource.johnhenry.me/pixelable/",
+  "bugs": "https://github.com/johnhenry/pixelable/issues",
+  "engines": {
+    "node": ">=26.0.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@custom-elements-manifest/analyzer": "^0.11.0",
+    "@playwright/test": "^1.63.0",
+    "eslint": "^10.11.0",
+    "globals": "^17.12.0",
+    "typescript": "^7.0.2"
+  }
+}

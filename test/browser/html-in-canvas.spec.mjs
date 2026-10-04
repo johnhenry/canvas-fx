@@ -4,7 +4,7 @@
 import { test, expect } from "@playwright/test";
 import { mount } from "./helpers.mjs";
 
-const MODULES = ["src/pixelable/global.mjs"];
+const MODULES = ["src/global.mjs"];
 const supported = (page) => page.evaluate(() => "drawElementImage" in CanvasRenderingContext2D.prototype);
 
 const FORM = `
@@ -80,6 +80,8 @@ test("without HTML-in-canvas, the content shows as it is, and works", async ({ p
   await mount(page, FORM, MODULES);
   test.skip(await supported(page), "this browser has HTML-in-canvas");
   expect(await page.evaluate(() => document.getElementById("p").hasAttribute("data-html-unsupported"))).toBe(true);
+  // Not an image: the form is the form, to assistive technology too.
+  expect(await page.evaluate(() => document.getElementById("p").getAttribute("role"))).toBe(null);
   await expect(page.locator("#go")).toBeVisible();
   await page.locator("#name").fill("Grace");
   expect(await page.locator("#name").inputValue()).toBe("Grace");

@@ -144,7 +144,6 @@ export class PixelEffect extends HTMLElement {
   /**
    * The effect's parameters, read from this element's attributes.
    * @type {EffectParams}
-   * @readonly
    */
   get params() {
     const params = { args: [] };

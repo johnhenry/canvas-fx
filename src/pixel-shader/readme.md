@@ -3,12 +3,12 @@
 A pixel effect you write in GLSL, run on the GPU: put a fragment shader in
 a `<script type="x-shader/x-fragment">` child and wrap the source in it.
 It's fast enough for full-size live video, and it chains with every other
-effect. Part of [pixelable](../readme.md).
+effect. Part of [pixelable](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/domkit/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
 
 <pixel-canvas fps="30">
   <pixel-shader strength="0.03">
@@ -52,7 +52,7 @@ shader for the `effects` attribute and as a `<pixel-name>` element, with
 its `u_` uniforms as parameters:
 
 ```js
-import { definePixelShader } from "@johnhenry/domkit/pixelable/shader.mjs";
+import { definePixelShader } from "@johnhenry/pixelable/shader.mjs";
 
 definePixelShader("vignette", `
   float d = distance(v_uv, vec2(0.5));

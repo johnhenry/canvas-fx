@@ -2,12 +2,12 @@
 
 Makes the image look like an old screen: alternate rows darkened like scanlines, columns tinted red, green, and blue like a shadow mask, and a little glow to make up the lost light. Use it as `crt(…)` in a
 [`<pixel-canvas>`](../pixel-canvas/readme.md)'s `effects`, or as this
-element wrapped around the source. Part of [pixelable](../readme.md).
+element wrapped around the source. Part of [pixelable](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/domkit/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
 
 <pixel-canvas width="200" effects="palette(cga) crt()">
   <img src="photo.jpg" alt="A photo" />

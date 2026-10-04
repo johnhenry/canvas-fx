@@ -80,9 +80,8 @@ export declare class PixelEffect extends HTMLElement {
     /**
      * The effect's parameters, read from this element's attributes.
      * @type {EffectParams}
-     * @readonly
      */
-    readonly get params(): EffectParams;
+    get params(): EffectParams;
     /**
      * Transform the image (by default, with this element's effect).
      * @param {ImageData} image

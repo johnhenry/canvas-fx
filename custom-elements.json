@@ -1,0 +1,2109 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "src/index.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "PixelCanvas",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-canvas/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PixelSprite",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-sprite/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PixelMosaic",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-mosaic/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PixelPalette",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-palette/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PixelGrid",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-grid/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PixelAdjust",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-adjust/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PixelHalftone",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-halftone/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PixelOutline",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-outline/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PixelCrt",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-crt/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PixelChromaKey",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-chroma-key/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PixelGlitch",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-glitch/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PixelWave",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-wave/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PixelShader",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-shader/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "definePixelEffect",
+          "declaration": {
+            "name": "definePixelEffect",
+            "module": "./effects.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "getPixelEffect",
+          "declaration": {
+            "name": "getPixelEffect",
+            "module": "./effects.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "parseEffects",
+          "declaration": {
+            "name": "parseEffects",
+            "module": "./effects.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PixelEffect",
+          "declaration": {
+            "name": "PixelEffect",
+            "module": "./effects.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "effectRegistry",
+          "declaration": {
+            "name": "effectRegistry",
+            "module": "./effects.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "definePixelShader",
+          "declaration": {
+            "name": "definePixelShader",
+            "module": "./shader.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "runShader",
+          "declaration": {
+            "name": "runShader",
+            "module": "./shader.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "dominantColors",
+          "declaration": {
+            "name": "dominantColors",
+            "module": "./quantize.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "toHex",
+          "declaration": {
+            "name": "toHex",
+            "module": "./quantize.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-adjust/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-adjust",
+          "declaration": {
+            "name": "PixelAdjust",
+            "module": "src/pixel-adjust/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-adjust/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Adjusts brightness, contrast, saturation, and hue, like the CSS filter functions of those names. The element form of `adjust(brightness, contrast, saturation, hue)`.",
+          "name": "PixelAdjust",
+          "members": [
+            {
+              "kind": "field",
+              "name": "effect",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ name: \"adjust\", params, apply }"
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "Multiplier: 1 is unchanged, 0 is black. Default 1.",
+              "name": "brightness"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "Multiplier around mid-gray: 1 is unchanged, 0 is flat gray. Default 1.",
+              "name": "contrast"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "Multiplier: 1 is unchanged, 0 is grayscale. Default 1.",
+              "name": "saturation"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "Rotation in degrees. Default 0.",
+              "name": "hue"
+            },
+            {
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Pass the image through unchanged.",
+              "name": "disabled"
+            }
+          ],
+          "superclass": {
+            "name": "PixelEffect",
+            "module": "/src/effects.mjs"
+          },
+          "tagName": "pixel-adjust",
+          "customElement": true,
+          "summary": "A pixel effect: brightness, contrast, saturation, and hue."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelAdjust",
+            "module": "src/pixel-adjust/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-canvas/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-canvas",
+          "declaration": {
+            "name": "PixelCanvas",
+            "module": "src/pixel-canvas/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-canvas/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Draws its source image, video, or canvas through the pixel effects\nwrapped around it.",
+          "name": "PixelCanvas",
+          "cssParts": [
+            {
+              "description": "The `<canvas>` showing the result.",
+              "name": "canvas"
+            },
+            {
+              "description": "With `html`, where supported: the `<canvas layoutsubtree>` its content is laid out in and the result is drawn on. Invoker commands: `--play`, `--pause`, `--toggle`.",
+              "name": "html-canvas"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "#canvas",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#slot",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#scheduled",
+              "privacy": "private",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "#frame",
+              "privacy": "private",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "#video",
+              "privacy": "private",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "#source",
+              "privacy": "private",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "#loadedSource",
+              "privacy": "private",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "#failed",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "#observer",
+              "privacy": "private",
+              "default": "new MutationObserver((records) => { if (records.some((record) => record.target !== this || record.type === \"childList\")) this.#schedule(); })"
+            },
+            {
+              "kind": "field",
+              "name": "#onSourceEvent",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#onPixelChange",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#reportedUnknown",
+              "privacy": "private",
+              "default": "new Set()"
+            },
+            {
+              "kind": "field",
+              "name": "#onDefine",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "time",
+              "description": "Seconds on the clock that effects animate by. It runs while the\nelement is connected and not paused (and, for visitors who prefer\nreduced motion, only once `play()` is called).",
+              "type": {
+                "text": "number"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "paused",
+              "description": "Whether the clock is paused.",
+              "type": {
+                "text": "boolean"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "play",
+              "description": "Start or resume the clock (and the `fps` redraws)."
+            },
+            {
+              "kind": "method",
+              "name": "pause",
+              "description": "Pause the clock where it is."
+            },
+            {
+              "kind": "method",
+              "name": "#setPaused",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "paused"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#runClock",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "{ force = false }",
+                  "default": "{}"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#stopClock",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#elapsed",
+              "privacy": "private",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "#startedAt",
+              "privacy": "private",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "#ticker",
+              "privacy": "private",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "#forced",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "#reflecting",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "#draws",
+              "privacy": "private",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "source",
+              "description": "What's being drawn: the first element inside that's an `<img>`,\n`<video>`, or `<canvas>`, or that exposes a `canvas` property (like\n`<pixel-sprite>`).",
+              "type": {
+                "text": "Element | null"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "effectElements",
+              "description": "The effect elements wrapped around the source, in the order they run\n(innermost first). Disabled ones are included.",
+              "type": {
+                "text": "Element[]"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "effects",
+              "description": "Mirrors the `effects` attribute.",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "swatches",
+              "description": "How many swatches to publish. Mirrors the `swatches` attribute.",
+              "type": {
+                "text": "number"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "swatchesTarget",
+              "description": "Mirrors the `swatches-target` attribute.",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "palette",
+              "description": "With `swatches`: the result's most common colors, as `#rrggbb`, most\ncommon first. Empty otherwise.",
+              "type": {
+                "text": "string[]"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "canvas",
+              "description": "The canvas showing the result (in the shadow root).",
+              "type": {
+                "text": "HTMLCanvasElement"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "render",
+              "description": "Draw now, instead of on the next frame. Returns whether it drew.",
+              "return": {
+                "type": {
+                  "text": "boolean"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "toBlob",
+              "parameters": [
+                {
+                  "name": "type",
+                  "description": "e.g. \"image/png\" (the default)",
+                  "optional": true,
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "quality",
+                  "optional": true,
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ],
+              "description": "The result as an image file, like `HTMLCanvasElement.toBlob()`.",
+              "return": {
+                "type": {
+                  "text": "Promise<Blob | null>"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "toDataURL",
+              "parameters": [
+                {
+                  "name": "type",
+                  "optional": true,
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "quality",
+                  "optional": true,
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ],
+              "description": "The result as a data: URL, like `HTMLCanvasElement.toDataURL()`.",
+              "return": {
+                "type": {
+                  "text": "string"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "#schedule",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#bindSource",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "source"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#watchVideo",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#stopVideo",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#drawable",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "source"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#size",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "source"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#draw",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#loadedSrc",
+              "privacy": "private",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "method",
+              "name": "#applyEffects",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "image"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#publishSwatches",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "image"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "#htmlCanvas",
+              "privacy": "private",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "#htmlFailed",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "#resizeObserver",
+              "privacy": "private",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "#onPaint",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#setHTMLMode",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#observeContent",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#fitHTML",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#paintHTML",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#publish",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "colors"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "#palette",
+              "privacy": "private",
+              "type": {
+                "text": "array"
+              },
+              "default": "[]"
+            },
+            {
+              "kind": "field",
+              "name": "#swatched",
+              "privacy": "private",
+              "default": "new Set()"
+            },
+            {
+              "kind": "method",
+              "name": "#awaitDefinitions",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#awaiting",
+              "privacy": "private",
+              "default": "new Set()"
+            },
+            {
+              "kind": "method",
+              "name": "#unknown",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "name"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#fail",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "error"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#label",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "source"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "#generatedLabel",
+              "privacy": "private",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "width",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "height",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            }
+          ],
+          "events": [
+            {
+              "name": "play",
+              "type": {
+                "text": "Event"
+              },
+              "description": "The clock started or resumed."
+            },
+            {
+              "name": "pause",
+              "type": {
+                "text": "Event"
+              },
+              "description": "The clock paused."
+            },
+            {
+              "name": "load",
+              "type": {
+                "text": "Event"
+              },
+              "description": "The first frame of a source was drawn."
+            },
+            {
+              "name": "palettechange",
+              "type": {
+                "text": "Event"
+              },
+              "description": "With `swatches`: the published colors changed."
+            },
+            {
+              "name": "error",
+              "type": {
+                "text": "ErrorEvent"
+              },
+              "description": "The source can't be read (for example, a cross-origin image without CORS) or an effect threw: an `ErrorEvent`, and the original content is shown instead. Also fired, once per name, for an unknown effect in `effects`, which is skipped."
+            }
+          ],
+          "attributes": [
+            {
+              "name": "width",
+              "type": {
+                "text": "number"
+              },
+              "description": "Working width in pixels: the source is scaled to it (keeping its aspect ratio) before the effects run. Smaller is faster and chunkier. Default: the source's own width."
+            },
+            {
+              "name": "height",
+              "type": {
+                "text": "number"
+              },
+              "description": "Working height, if `width` isn't given."
+            },
+            {
+              "name": "effects",
+              "type": {
+                "text": "string"
+              },
+              "description": "Effects to apply, in order, like CSS `filter`: `mosaic(4) palette(gameboy, ordered) adjust(contrast 1.3)`. They run after any effect elements inside."
+            },
+            {
+              "name": "swatches",
+              "type": {
+                "text": "number"
+              },
+              "description": "Publish the result's N most common colors as `--pixel-swatch-1` … `--pixel-swatch-N` custom properties (and the `palette` property). Default: none."
+            },
+            {
+              "name": "swatches-target",
+              "type": {
+                "text": "string"
+              },
+              "description": "A selector for more elements to set those custom properties on (for example `html`, to theme the page). They're always set on the `<pixel-canvas>` itself."
+            },
+            {
+              "name": "fps",
+              "type": {
+                "text": "number"
+              },
+              "description": "Redraw at this rate, so effects that change over time (`glitch`, `wave`, your own) animate even on a still image. Without it, it redraws only when something changes (or every frame of a playing video)."
+            },
+            {
+              "name": "paused",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Stops the clock effects animate by, and the `fps` redraws. Reflects; write it in markup to start paused."
+            },
+            {
+              "name": "html",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Experimental: draw its own HTML content (live, and still interactive) through the effects, where the browser supports HTML-in-canvas; elsewhere the content shows as it is. Without `width`/`height`, one working pixel is one CSS pixel."
+            }
+          ],
+          "superclass": {
+            "name": "HTMLElement"
+          },
+          "tagName": "pixel-canvas",
+          "customElement": true,
+          "summary": "Pixel effects on any image, video, canvas, or pixel sprite."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelCanvas",
+            "module": "src/pixel-canvas/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-chroma-key/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-chroma-key",
+          "declaration": {
+            "name": "PixelChromaKey",
+            "module": "src/pixel-chroma-key/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-chroma-key/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Makes one color transparent, like a green screen. The element form of `chroma-key(color, tolerance, softness)`.",
+          "name": "PixelChromaKey",
+          "members": [
+            {
+              "kind": "field",
+              "name": "effect",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ name: \"chroma-key\", params, apply }"
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "string"
+              },
+              "description": "The color to remove, any CSS color. Default `lime`.",
+              "name": "color"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "How different a color can be and still be removed, 0–1. Default 0.3.",
+              "name": "tolerance"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "A fade beyond the tolerance, 0–1, for smooth edges. Default 0.1.",
+              "name": "softness"
+            },
+            {
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Pass the image through unchanged.",
+              "name": "disabled"
+            }
+          ],
+          "superclass": {
+            "name": "PixelEffect",
+            "module": "/src/effects.mjs"
+          },
+          "tagName": "pixel-chroma-key",
+          "customElement": true,
+          "summary": "A pixel effect: make a color transparent (green screen)."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelChromaKey",
+            "module": "src/pixel-chroma-key/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-crt/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-crt",
+          "declaration": {
+            "name": "PixelCrt",
+            "module": "src/pixel-crt/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-crt/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Makes the image look like an old screen: scanlines, a red/green/blue stripe mask, and a little glow. The element form of `crt(scanlines, mask, glow)`.",
+          "name": "PixelCrt",
+          "members": [
+            {
+              "kind": "field",
+              "name": "effect",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ name: \"crt\", params, apply }"
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "How much alternate rows are darkened, 0–1. Default 0.35.",
+              "name": "scanlines"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "Strength of the color stripe mask, 0–1. Default 0.25.",
+              "name": "mask"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "Overall brightness boost. Default 1.15.",
+              "name": "glow"
+            },
+            {
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Pass the image through unchanged.",
+              "name": "disabled"
+            }
+          ],
+          "superclass": {
+            "name": "PixelEffect",
+            "module": "/src/effects.mjs"
+          },
+          "tagName": "pixel-crt",
+          "customElement": true,
+          "summary": "A pixel effect: an old CRT screen."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelCrt",
+            "module": "src/pixel-crt/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-glitch/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-glitch",
+          "declaration": {
+            "name": "PixelGlitch",
+            "module": "src/pixel-glitch/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-glitch/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Digital breakup: bands of rows slide sideways and the red and blue channels split, differently at each step of the canvas clock. The element form of `glitch(amount, rate)`.",
+          "name": "PixelGlitch",
+          "members": [
+            {
+              "kind": "field",
+              "name": "effect",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ name: \"glitch\", params, apply }"
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "How broken, 0 (none) to 1. Default 0.3.",
+              "name": "amount"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "New glitches per second of the canvas clock. Default 8.",
+              "name": "rate"
+            },
+            {
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Pass the image through unchanged.",
+              "name": "disabled"
+            }
+          ],
+          "superclass": {
+            "name": "PixelEffect",
+            "module": "/src/effects.mjs"
+          },
+          "tagName": "pixel-glitch",
+          "customElement": true,
+          "summary": "A pixel effect: animated digital glitches."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelGlitch",
+            "module": "src/pixel-glitch/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-grid/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-grid",
+          "declaration": {
+            "name": "PixelGrid",
+            "module": "src/pixel-grid/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-grid/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Draws grid lines every `size` pixels. The element form of\n`grid(size, color, line)`.",
+          "name": "PixelGrid",
+          "members": [
+            {
+              "kind": "field",
+              "name": "effect",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ name: \"grid\", params, apply }"
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "Cell size, in the working image's pixels. Default 8.",
+              "name": "size"
+            },
+            {
+              "type": {
+                "text": "string"
+              },
+              "description": "Line color, any CSS color (transparency blends). `transparent` cuts gaps instead of drawing lines. Default `rgb(0 0 0 / 0.35)`.",
+              "name": "color"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "Line thickness in pixels. Default 1.",
+              "name": "line"
+            },
+            {
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Pass the image through unchanged.",
+              "name": "disabled"
+            }
+          ],
+          "superclass": {
+            "name": "PixelEffect",
+            "module": "/src/effects.mjs"
+          },
+          "tagName": "pixel-grid",
+          "customElement": true,
+          "summary": "A pixel effect: grid lines between cells."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelGrid",
+            "module": "src/pixel-grid/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-halftone/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-halftone",
+          "declaration": {
+            "name": "PixelHalftone",
+            "module": "src/pixel-halftone/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-halftone/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Turns the image into printed dots: each cell of a rotated grid becomes one dot, larger where it's darker. The element form of `halftone(size, angle, ink, paper)`.",
+          "name": "PixelHalftone",
+          "members": [
+            {
+              "kind": "field",
+              "name": "effect",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ name: \"halftone\", params, apply }"
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "Cell size in pixels. Default 6.",
+              "name": "size"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "Grid angle in degrees. Default 45.",
+              "name": "angle"
+            },
+            {
+              "type": {
+                "text": "string"
+              },
+              "description": "Dot color, any CSS color, or `auto` for each cell's own color. Default black.",
+              "name": "ink"
+            },
+            {
+              "type": {
+                "text": "string"
+              },
+              "description": "Background color. Default white.",
+              "name": "paper"
+            },
+            {
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Pass the image through unchanged.",
+              "name": "disabled"
+            }
+          ],
+          "superclass": {
+            "name": "PixelEffect",
+            "module": "/src/effects.mjs"
+          },
+          "tagName": "pixel-halftone",
+          "customElement": true,
+          "summary": "A pixel effect: halftone dots, like print."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelHalftone",
+            "module": "src/pixel-halftone/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-mosaic/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-mosaic",
+          "declaration": {
+            "name": "PixelMosaic",
+            "module": "src/pixel-mosaic/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-mosaic/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Pixelates the image: each `size`×`size` block becomes its average color.\nThe element form of `mosaic(size)`.",
+          "name": "PixelMosaic",
+          "members": [
+            {
+              "kind": "field",
+              "name": "effect",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ name: \"mosaic\", params, apply }"
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "Block size, in the working image's pixels. Default 8.",
+              "name": "size"
+            },
+            {
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Pass the image through unchanged.",
+              "name": "disabled"
+            }
+          ],
+          "superclass": {
+            "name": "PixelEffect",
+            "module": "/src/effects.mjs"
+          },
+          "tagName": "pixel-mosaic",
+          "customElement": true,
+          "summary": "A pixel effect: pixelate into blocks of one color."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelMosaic",
+            "module": "src/pixel-mosaic/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-outline/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-outline",
+          "declaration": {
+            "name": "PixelOutline",
+            "module": "src/pixel-outline/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-outline/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Draws line art from the image's edges. The element form of `outline(threshold, ink, paper)`.",
+          "name": "PixelOutline",
+          "members": [
+            {
+              "kind": "field",
+              "name": "effect",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ name: \"outline\", params, apply }"
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "Edge strength needed for a line, 0–1. Lower draws more lines. Default 0.2.",
+              "name": "threshold"
+            },
+            {
+              "type": {
+                "text": "string"
+              },
+              "description": "Line color. Default black.",
+              "name": "ink"
+            },
+            {
+              "type": {
+                "text": "string"
+              },
+              "description": "Background color, or `none` to draw the lines over the image. Default white.",
+              "name": "paper"
+            },
+            {
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Pass the image through unchanged.",
+              "name": "disabled"
+            }
+          ],
+          "superclass": {
+            "name": "PixelEffect",
+            "module": "/src/effects.mjs"
+          },
+          "tagName": "pixel-outline",
+          "customElement": true,
+          "summary": "A pixel effect: line art from edges."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelOutline",
+            "module": "src/pixel-outline/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-palette/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-palette",
+          "declaration": {
+            "name": "PixelPalette",
+            "module": "src/pixel-palette/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-palette/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Reduces the image to a palette, optionally dithered. The element form of\n`palette(colors, dither)`.",
+          "name": "PixelPalette",
+          "members": [
+            {
+              "kind": "field",
+              "name": "effect",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ name: \"palette\", params, apply }"
+            },
+            {
+              "kind": "field",
+              "name": "palette",
+              "description": "The resolved palette, as `[r, g, b]` triples. Empty for `auto`, which\ndepends on the image (see `<pixel-canvas>`'s `palette`).",
+              "type": {
+                "text": "number[][]"
+              },
+              "readonly": true
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "string"
+              },
+              "description": "A named palette (`1bit`, `gameboy`, `grayscale`, `cga`, `sepia`, `pico-8`), space-separated CSS colors, or `auto` (the image's own dominant colors). Default `1bit`.",
+              "name": "colors"
+            },
+            {
+              "type": {
+                "text": "string"
+              },
+              "description": "`none` (default), `floyd-steinberg` (error diffusion), or `ordered` (a 4×4 Bayer pattern).",
+              "name": "dither"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "With `colors=\"auto\"`: how many colors to pick. Default 8.",
+              "name": "count"
+            },
+            {
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Pass the image through unchanged.",
+              "name": "disabled"
+            }
+          ],
+          "superclass": {
+            "name": "PixelEffect",
+            "module": "/src/effects.mjs"
+          },
+          "tagName": "pixel-palette",
+          "customElement": true,
+          "summary": "A pixel effect: limit colors to a palette, with dithering."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelPalette",
+            "module": "src/pixel-palette/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PALETTES",
+          "declaration": {
+            "name": "PALETTES",
+            "module": "./effect.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-shader/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-shader",
+          "declaration": {
+            "name": "PixelShader",
+            "module": "src/pixel-shader/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-shader/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Runs the image through the GLSL fragment shader in its\n`<script type=\"x-shader/x-fragment\">` child, on the GPU. Each `u_name`\nuniform the shader uses (beyond the built-in ones) is a float set from\nthis element's `name` attribute.",
+          "name": "PixelShader",
+          "members": [
+            {
+              "kind": "field",
+              "name": "source",
+              "description": "The shader's code: the text of its `<script type=\"x-shader/x-fragment\">`\nchild.",
+              "type": {
+                "text": "string"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "apply",
+              "parameters": [
+                {
+                  "name": "image",
+                  "type": {
+                    "text": "ImageData"
+                  }
+                },
+                {
+                  "name": "context",
+                  "optional": true,
+                  "type": {
+                    "text": "{ time: number, frame: number }"
+                  }
+                }
+              ],
+              "return": {
+                "type": {
+                  "text": "ImageData"
+                }
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Pass the image through unchanged.",
+              "name": "disabled"
+            }
+          ],
+          "superclass": {
+            "name": "PixelEffect",
+            "module": "/src/effects.mjs"
+          },
+          "tagName": "pixel-shader",
+          "customElement": true,
+          "summary": "A pixel effect written as a GLSL fragment shader, run on the GPU."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelShader",
+            "module": "src/pixel-shader/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-sprite/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-sprite",
+          "declaration": {
+            "name": "PixelSprite",
+            "module": "src/pixel-sprite/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-sprite/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Pixel art written as text: one character per pixel, one line per row,\nand a blank line between animation frames.",
+          "name": "PixelSprite",
+          "cssProperties": [
+            {
+              "description": "How many screen pixels each sprite pixel takes. Default 8.",
+              "name": "--pixel-sprite-scale"
+            }
+          ],
+          "cssParts": [
+            {
+              "description": "The `<canvas>` it's drawn on. Invoker commands: `--play`, `--pause`, `--toggle`.",
+              "name": "canvas"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "#canvas",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#sizing",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#frames",
+              "privacy": "private",
+              "type": {
+                "text": "array"
+              },
+              "default": "[]"
+            },
+            {
+              "kind": "field",
+              "name": "#key",
+              "privacy": "private",
+              "type": {
+                "text": "object"
+              },
+              "default": "{}"
+            },
+            {
+              "kind": "field",
+              "name": "#frame",
+              "privacy": "private",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "#raf",
+              "privacy": "private",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "#last",
+              "privacy": "private",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "#reflecting",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "#observer",
+              "privacy": "private",
+              "default": "new MutationObserver(() => this.#parse())"
+            },
+            {
+              "kind": "field",
+              "name": "canvas",
+              "description": "The canvas it's drawn on (in the shadow root), at one pixel per\ncharacter.",
+              "type": {
+                "text": "HTMLCanvasElement"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "frames",
+              "description": "How many frames there are.",
+              "type": {
+                "text": "number"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "frame",
+              "description": "The frame showing, from 0. Setting it shows that frame (wrapping).",
+              "type": {
+                "text": "number"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "paused",
+              "description": "Whether the animation is paused.",
+              "type": {
+                "text": "boolean"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "play",
+              "description": "Play the frames (at `fps`)."
+            },
+            {
+              "kind": "method",
+              "name": "pause",
+              "description": "Pause on the current frame."
+            },
+            {
+              "kind": "method",
+              "name": "#setPaused",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "paused"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#parse",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#draw",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#start",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "{ force = false }",
+                  "default": "{}"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#stop",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#label",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "#generatedLabel",
+              "privacy": "private",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "width",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "height",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            }
+          ],
+          "events": [
+            {
+              "name": "play",
+              "type": {
+                "text": "Event"
+              },
+              "description": "The animation started or resumed."
+            },
+            {
+              "name": "pause",
+              "type": {
+                "text": "Event"
+              },
+              "description": "The animation paused."
+            },
+            {
+              "name": "framechange",
+              "type": {
+                "text": "Event"
+              },
+              "description": "It was redrawn: the frame advanced, or its pixels or colors changed."
+            }
+          ],
+          "attributes": [
+            {
+              "name": "colors",
+              "type": {
+                "text": "string"
+              },
+              "description": "What each character means: `char color` pairs separated by `;` (`. transparent; # black; o gold`), or a named palette whose colors are numbered `0`–`9` then `a`–`z` (`pico-8`, the default; `gameboy`; `1bit`; …). `.` is transparent unless you say otherwise."
+            },
+            {
+              "name": "fps",
+              "type": {
+                "text": "number"
+              },
+              "description": "Play the frames at this rate. Without it (or with one frame), it's still."
+            },
+            {
+              "name": "paused",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Whether the animation is paused. Reflects; write it in markup to start paused."
+            },
+            {
+              "name": "alt",
+              "type": {
+                "text": "string"
+              },
+              "description": "A text alternative, as on `<img>`. An empty `alt` marks it decorative."
+            }
+          ],
+          "superclass": {
+            "name": "HTMLElement"
+          },
+          "tagName": "pixel-sprite",
+          "customElement": true,
+          "summary": "Pixel art written as text, with animation frames."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelSprite",
+            "module": "src/pixel-sprite/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-wave/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-wave",
+          "declaration": {
+            "name": "PixelWave",
+            "module": "src/pixel-wave/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-wave/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Slides each row sideways along a sine wave that travels over time: water, heat haze, a waving flag. The element form of `wave(amplitude, wavelength, speed)`.",
+          "name": "PixelWave",
+          "members": [
+            {
+              "kind": "field",
+              "name": "effect",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ name: \"wave\", params, apply }"
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "How far rows move, in pixels. Default 4.",
+              "name": "amplitude"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "Rows per wave. Default 32.",
+              "name": "wavelength"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "Waves per second on the canvas clock (negative reverses). Default 0.5.",
+              "name": "speed"
+            },
+            {
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Pass the image through unchanged.",
+              "name": "disabled"
+            }
+          ],
+          "superclass": {
+            "name": "PixelEffect",
+            "module": "/src/effects.mjs"
+          },
+          "tagName": "pixel-wave",
+          "customElement": true,
+          "summary": "A pixel effect: an animated wave."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelWave",
+            "module": "src/pixel-wave/index.mjs"
+          }
+        }
+      ]
+    }
+  ]
+}

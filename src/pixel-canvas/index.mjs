@@ -262,7 +262,7 @@ export default class PixelCanvas extends HTMLElement {
    * @readonly
    */
   get source() {
-    if (this.#htmlCanvas) return null; // the content itself is drawn
+    if (this.hasAttribute("html")) return null; // the content itself is the source (or, unsupported, just shows)
     const walker = document.createTreeWalker(this, NodeFilter.SHOW_ELEMENT);
     for (let element = walker.nextNode(); element; element = walker.nextNode()) {
       if (isSource(element)) return element;
@@ -435,6 +435,10 @@ export default class PixelCanvas extends HTMLElement {
       this.#htmlCanvas.requestPaint(); // drawn in its paint event (#paintHTML)
       return true;
     }
+    if (this.hasAttribute("html")) {
+      this.#label(null); // the content shows as it is: it isn't an image
+      return false;
+    }
     const source = this.source;
     this.#bindSource(source);
     this.#label(source);
@@ -525,10 +529,7 @@ export default class PixelCanvas extends HTMLElement {
       this.shadowRoot.append(canvas);
       this.#htmlCanvas = canvas;
       setAttr(this, "data-html", "");
-      // Its role is its content's, not an image's.
-      if (this.getAttribute("role") === "img") this.removeAttribute("role");
-      if (this.#generatedLabel !== null) this.removeAttribute("aria-label");
-      this.#generatedLabel = null;
+      this.#label(null);
       this.#resizeObserver = new ResizeObserver(() => this.#fitHTML());
       this.#slot.addEventListener("slotchange", this.#observeContent);
       this.#observeContent();
@@ -672,7 +673,13 @@ export default class PixelCanvas extends HTMLElement {
   // The result is an image: name it after the source, unless the author
   // has. An empty alt means decorative.
   #label(source) {
-    if (this.#htmlCanvas) return;
+    if (this.hasAttribute("html")) {
+      // Its role is its content's, not an image's.
+      if (this.getAttribute("role") === "img") this.removeAttribute("role");
+      if (this.#generatedLabel !== null) this.removeAttribute("aria-label");
+      this.#generatedLabel = null;
+      return;
+    }
     if (this.hasAttribute("aria-label") && this.getAttribute("aria-label") !== this.#generatedLabel) return;
     if (this.hasAttribute("aria-labelledby")) return;
     const text = source?.getAttribute("alt") ?? source?.getAttribute("aria-label") ?? source?.getAttribute("title") ?? null;

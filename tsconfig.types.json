@@ -1,0 +1,25 @@
+{
+  // Emits .d.mts declarations from JSDoc for the plain-function modules
+  // (elements get theirs from custom-elements.json; see
+  // scripts/manifest-outputs.mjs). Run via `npm run manifest`.
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": ".",
+    "declarationDir": ".",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "es2022",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "skipLibCheck": true
+  },
+  "files": [
+    "src/index.mjs",
+    "src/effects.mjs",
+    "src/pixel-palette/palettes.mjs",
+    "src/quantize.mjs",
+    "src/shader.mjs"
+  ]
+}

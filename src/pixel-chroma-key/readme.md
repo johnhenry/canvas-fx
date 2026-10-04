@@ -2,12 +2,12 @@
 
 Makes one color transparent, like a green screen, so whatever is behind the `<pixel-canvas>` shows through. Pixels near the color fade out over `softness`, for smoother edges. Use it as `chroma-key(…)` in a
 [`<pixel-canvas>`](../pixel-canvas/readme.md)'s `effects`, or as this
-element wrapped around the source. Part of [pixelable](../readme.md).
+element wrapped around the source. Part of [pixelable](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/domkit/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
 
 <pixel-canvas width="200" effects="chroma-key(lime, 0.35)">
   <img src="photo.jpg" alt="A photo" />

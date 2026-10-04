@@ -1,15 +1,15 @@
 # pixel-canvas
 
-Draws an image, video, or canvas through [pixel effects](../readme.md),
+Draws an image, video, or canvas through [pixel effects](../../README.md),
 listed in its `effects` attribute like CSS `filter`, or wrapped around the
 source as elements. The first `<img>`, `<video>`, or `<canvas>` inside is
 the source, or a [`<pixel-sprite>`](../pixel-sprite/readme.md). Part of
-[pixelable](../readme.md).
+[pixelable](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/domkit/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
 
 <pixel-canvas width="120" effects="adjust(contrast 1.2) palette(1bit, floyd-steinberg)">
   <img src="portrait.jpg" alt="A portrait, dithered" />
@@ -19,7 +19,7 @@ the source, or a [`<pixel-sprite>`](../pixel-sprite/readme.md). Part of
 ## Effects
 
 `effects` lists effects to run left to right, each as `name(…)` with its
-parameters in order or by name (see the [effects table](../readme.md#effects)).
+parameters in order or by name (see the [effects table](../../README.md#effects)).
 Effect elements wrapped around the source run first, innermost first, and
 `effectElements` lists them. An unknown name is skipped, and reported once
 with an `error` event; if it's defined later, the canvas redraws.
@@ -120,7 +120,7 @@ something changes and on every frame of a playing video or sprite. Add
 `play()`, `pause()`, the `paused` attribute (write it to start paused),
 `play`/`pause` events, and the `--play`, `--pause`, and `--toggle`
 invoker commands control the clock, as on
-[`<frame-timer>`](../../frame-timer/readme.md). Pausing freezes `time`
+[`<frame-timer>`](https://github.com/johnhenry/domkit/blob/main/src/frame-timer/readme.md). Pausing freezes `time`
 (and the `fps` redraws), not a video source. For visitors who prefer
 reduced motion, the clock waits for `play()`.
 
@@ -230,4 +230,4 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
   the original image unchanged.
 - `load` fires once per source (and per new `src`), after its first
   frame is drawn, not on every redraw.
-- Your own effects: see [Your own effects](../readme.md#your-own-effects).
+- Your own effects: see [Your own effects](../../README.md#your-own-effects).

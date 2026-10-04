@@ -2,12 +2,12 @@
 
 Slides each row sideways along a sine wave that travels over time: water, heat haze, a flag in the wind. Give the `<pixel-canvas>` an `fps` to animate it. Use it as `wave(…)` in a
 [`<pixel-canvas>`](../pixel-canvas/readme.md)'s `effects`, or as this
-element wrapped around the source. Part of [pixelable](../readme.md).
+element wrapped around the source. Part of [pixelable](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/domkit/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
 
 <pixel-canvas width="200" fps="30" effects="wave(3, 24, 0.5)">
   <img src="photo.jpg" alt="A photo" />

@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Supersede an in-flight run when new commits land on the same ref -- the
+# whole family shares this block so a rapid push sequence never queues N
+# redundant runs.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    uses: johnhenry/workflows/.github/workflows/ci.yml@v1
+    with:
+      node-versions: '["26"]'
+      os: '["ubuntu-latest"]'
+      # npm test: syntax, references, lint, and types.
+      # Then the browser suites: Chromium, Firefox, WebKit, and Chromium with HTML-in-canvas on.
+      gate-commands: |
+        npm test
+        npx playwright install --with-deps chromium firefox webkit
+        npm run test:browser
+      # custom-elements.json and everything generated from it must be
+      # committed up to date (`npm run manifest`).
+      drift-check: true
+      drift-build-command: npm run manifest
+      drift-path: custom-elements.json vscode.html-custom-data.json docs/reference.md src

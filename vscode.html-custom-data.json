@@ -1,0 +1,383 @@
+{
+  "version": 1.1,
+  "tags": [
+    {
+      "name": "pixel-adjust",
+      "description": "A pixel effect: brightness, contrast, saturation, and hue.",
+      "attributes": [
+        {
+          "name": "brightness",
+          "description": "Multiplier: 1 is unchanged, 0 is black. Default 1."
+        },
+        {
+          "name": "contrast",
+          "description": "Multiplier around mid-gray: 1 is unchanged, 0 is flat gray. Default 1."
+        },
+        {
+          "name": "saturation",
+          "description": "Multiplier: 1 is unchanged, 0 is grayscale. Default 1."
+        },
+        {
+          "name": "hue",
+          "description": "Rotation in degrees. Default 0."
+        },
+        {
+          "name": "disabled",
+          "description": "Pass the image through unchanged.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-adjust"
+        }
+      ]
+    },
+    {
+      "name": "pixel-canvas",
+      "description": "Pixel effects on any image, video, canvas, or pixel sprite.\n\nEvents: `play`, `pause`, `load`, `palettechange`, `error`",
+      "attributes": [
+        {
+          "name": "width",
+          "description": "Working width in pixels: the source is scaled to it (keeping its aspect ratio) before the effects run. Smaller is faster and chunkier. Default: the source's own width."
+        },
+        {
+          "name": "height",
+          "description": "Working height, if `width` isn't given."
+        },
+        {
+          "name": "effects",
+          "description": "Effects to apply, in order, like CSS `filter`: `mosaic(4) palette(gameboy, ordered) adjust(contrast 1.3)`. They run after any effect elements inside."
+        },
+        {
+          "name": "swatches",
+          "description": "Publish the result's N most common colors as `--pixel-swatch-1` … `--pixel-swatch-N` custom properties (and the `palette` property). Default: none."
+        },
+        {
+          "name": "swatches-target",
+          "description": "A selector for more elements to set those custom properties on (for example `html`, to theme the page). They're always set on the `<pixel-canvas>` itself."
+        },
+        {
+          "name": "fps",
+          "description": "Redraw at this rate, so effects that change over time (`glitch`, `wave`, your own) animate even on a still image. Without it, it redraws only when something changes (or every frame of a playing video)."
+        },
+        {
+          "name": "paused",
+          "description": "Stops the clock effects animate by, and the `fps` redraws. Reflects; write it in markup to start paused.",
+          "valueSet": "v"
+        },
+        {
+          "name": "html",
+          "description": "Experimental: draw its own HTML content (live, and still interactive) through the effects, where the browser supports HTML-in-canvas; elsewhere the content shows as it is. Without `width`/`height`, one working pixel is one CSS pixel.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-canvas"
+        }
+      ]
+    },
+    {
+      "name": "pixel-chroma-key",
+      "description": "A pixel effect: make a color transparent (green screen).",
+      "attributes": [
+        {
+          "name": "color",
+          "description": "The color to remove, any CSS color. Default `lime`."
+        },
+        {
+          "name": "tolerance",
+          "description": "How different a color can be and still be removed, 0–1. Default 0.3."
+        },
+        {
+          "name": "softness",
+          "description": "A fade beyond the tolerance, 0–1, for smooth edges. Default 0.1."
+        },
+        {
+          "name": "disabled",
+          "description": "Pass the image through unchanged.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-chroma-key"
+        }
+      ]
+    },
+    {
+      "name": "pixel-crt",
+      "description": "A pixel effect: an old CRT screen.",
+      "attributes": [
+        {
+          "name": "scanlines",
+          "description": "How much alternate rows are darkened, 0–1. Default 0.35."
+        },
+        {
+          "name": "mask",
+          "description": "Strength of the color stripe mask, 0–1. Default 0.25."
+        },
+        {
+          "name": "glow",
+          "description": "Overall brightness boost. Default 1.15."
+        },
+        {
+          "name": "disabled",
+          "description": "Pass the image through unchanged.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-crt"
+        }
+      ]
+    },
+    {
+      "name": "pixel-glitch",
+      "description": "A pixel effect: animated digital glitches.",
+      "attributes": [
+        {
+          "name": "amount",
+          "description": "How broken, 0 (none) to 1. Default 0.3."
+        },
+        {
+          "name": "rate",
+          "description": "New glitches per second of the canvas clock. Default 8."
+        },
+        {
+          "name": "disabled",
+          "description": "Pass the image through unchanged.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-glitch"
+        }
+      ]
+    },
+    {
+      "name": "pixel-grid",
+      "description": "A pixel effect: grid lines between cells.",
+      "attributes": [
+        {
+          "name": "size",
+          "description": "Cell size, in the working image's pixels. Default 8."
+        },
+        {
+          "name": "color",
+          "description": "Line color, any CSS color (transparency blends). `transparent` cuts gaps instead of drawing lines. Default `rgb(0 0 0 / 0.35)`."
+        },
+        {
+          "name": "line",
+          "description": "Line thickness in pixels. Default 1."
+        },
+        {
+          "name": "disabled",
+          "description": "Pass the image through unchanged.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-grid"
+        }
+      ]
+    },
+    {
+      "name": "pixel-halftone",
+      "description": "A pixel effect: halftone dots, like print.",
+      "attributes": [
+        {
+          "name": "size",
+          "description": "Cell size in pixels. Default 6."
+        },
+        {
+          "name": "angle",
+          "description": "Grid angle in degrees. Default 45."
+        },
+        {
+          "name": "ink",
+          "description": "Dot color, any CSS color, or `auto` for each cell's own color. Default black."
+        },
+        {
+          "name": "paper",
+          "description": "Background color. Default white."
+        },
+        {
+          "name": "disabled",
+          "description": "Pass the image through unchanged.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-halftone"
+        }
+      ]
+    },
+    {
+      "name": "pixel-mosaic",
+      "description": "A pixel effect: pixelate into blocks of one color.",
+      "attributes": [
+        {
+          "name": "size",
+          "description": "Block size, in the working image's pixels. Default 8."
+        },
+        {
+          "name": "disabled",
+          "description": "Pass the image through unchanged.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-mosaic"
+        }
+      ]
+    },
+    {
+      "name": "pixel-outline",
+      "description": "A pixel effect: line art from edges.",
+      "attributes": [
+        {
+          "name": "threshold",
+          "description": "Edge strength needed for a line, 0–1. Lower draws more lines. Default 0.2."
+        },
+        {
+          "name": "ink",
+          "description": "Line color. Default black."
+        },
+        {
+          "name": "paper",
+          "description": "Background color, or `none` to draw the lines over the image. Default white."
+        },
+        {
+          "name": "disabled",
+          "description": "Pass the image through unchanged.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-outline"
+        }
+      ]
+    },
+    {
+      "name": "pixel-palette",
+      "description": "A pixel effect: limit colors to a palette, with dithering.",
+      "attributes": [
+        {
+          "name": "colors",
+          "description": "A named palette (`1bit`, `gameboy`, `grayscale`, `cga`, `sepia`, `pico-8`), space-separated CSS colors, or `auto` (the image's own dominant colors). Default `1bit`."
+        },
+        {
+          "name": "dither",
+          "description": "`none` (default), `floyd-steinberg` (error diffusion), or `ordered` (a 4×4 Bayer pattern)."
+        },
+        {
+          "name": "count",
+          "description": "With `colors=\"auto\"`: how many colors to pick. Default 8."
+        },
+        {
+          "name": "disabled",
+          "description": "Pass the image through unchanged.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-palette"
+        }
+      ]
+    },
+    {
+      "name": "pixel-shader",
+      "description": "A pixel effect written as a GLSL fragment shader, run on the GPU.",
+      "attributes": [
+        {
+          "name": "disabled",
+          "description": "Pass the image through unchanged.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-shader"
+        }
+      ]
+    },
+    {
+      "name": "pixel-sprite",
+      "description": "Pixel art written as text, with animation frames.\n\nEvents: `play`, `pause`, `framechange`",
+      "attributes": [
+        {
+          "name": "colors",
+          "description": "What each character means: `char color` pairs separated by `;` (`. transparent; # black; o gold`), or a named palette whose colors are numbered `0`–`9` then `a`–`z` (`pico-8`, the default; `gameboy`; `1bit`; …). `.` is transparent unless you say otherwise."
+        },
+        {
+          "name": "fps",
+          "description": "Play the frames at this rate. Without it (or with one frame), it's still."
+        },
+        {
+          "name": "paused",
+          "description": "Whether the animation is paused. Reflects; write it in markup to start paused.",
+          "valueSet": "v"
+        },
+        {
+          "name": "alt",
+          "description": "A text alternative, as on `<img>`. An empty `alt` marks it decorative."
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-sprite"
+        }
+      ]
+    },
+    {
+      "name": "pixel-wave",
+      "description": "A pixel effect: an animated wave.",
+      "attributes": [
+        {
+          "name": "amplitude",
+          "description": "How far rows move, in pixels. Default 4."
+        },
+        {
+          "name": "wavelength",
+          "description": "Rows per wave. Default 32."
+        },
+        {
+          "name": "speed",
+          "description": "Waves per second on the canvas clock (negative reverses). Default 0.5."
+        },
+        {
+          "name": "disabled",
+          "description": "Pass the image through unchanged.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-wave"
+        }
+      ]
+    }
+  ]
+}

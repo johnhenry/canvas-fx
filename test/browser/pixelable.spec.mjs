@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { mount } from "./helpers.mjs";
 
-const MODULES = ["src/pixelable/global.mjs"];
+const MODULES = ["src/global.mjs"];
 
 // Paint a canvas from rows of CSS colors, one per pixel.
 const PAINT = `
@@ -152,7 +152,7 @@ test("definePixelEffect makes an effect usable both ways; a later definition red
   });
   void errors;
   await page.evaluate(async () => {
-    const { definePixelEffect, number } = await import("/src/pixelable/effects.mjs");
+    const { definePixelEffect, number } = await import("/src/effects.mjs");
     definePixelEffect(
       "tint",
       (image, params) => {
@@ -169,7 +169,7 @@ test("definePixelEffect makes an effect usable both ways; a later definition red
 test("a stateful effect element: extend PixelEffect, and invalidate() redraws", async ({ page }) => {
   await setup(page, `<pixel-canvas id="p"><pixel-stateful id="t"><canvas data-source></canvas></pixel-stateful></pixel-canvas>`, [["#000"]]);
   await page.evaluate(async () => {
-    const { PixelEffect } = await import("/src/pixelable/effects.mjs");
+    const { PixelEffect } = await import("/src/effects.mjs");
     customElements.define("pixel-stateful", class extends PixelEffect {
       amount = 0;
       apply(image) {
@@ -248,7 +248,7 @@ test.describe("the effects attribute", () => {
   test("parseEffects handles nesting, bare names, and odd spacing", async ({ page }) => {
     await mount(page, "", MODULES);
     const parsed = await page.evaluate(async () => {
-      const { parseEffects } = await import("/src/pixelable/effects.mjs");
+      const { parseEffects } = await import("/src/effects.mjs");
       return parseEffects("  mosaic( 4 )palette(rgb(0 0 0) white, ordered)   outline  grid()");
     });
     expect(parsed).toEqual([
@@ -264,9 +264,9 @@ test("an <img> source draws when it loads, fires load, and names the result from
   await mount(page, "", MODULES);
   const result = await page.evaluate(async () => {
     const holder = document.createElement("div");
-    holder.innerHTML = `<pixel-canvas id="p"><pixel-mosaic size="4"><img src="/src/pixelable/pixel-canvas/scene.svg" alt="A sunset"></pixel-mosaic></pixel-canvas>
-      <pixel-canvas id="decorative"><img src="/src/pixelable/pixel-canvas/scene.svg" alt=""></pixel-canvas>
-      <pixel-canvas id="authored" aria-label="Mine"><img src="/src/pixelable/pixel-canvas/scene.svg" alt="theirs"></pixel-canvas>`;
+    holder.innerHTML = `<pixel-canvas id="p"><pixel-mosaic size="4"><img src="/src/pixel-canvas/scene.svg" alt="A sunset"></pixel-mosaic></pixel-canvas>
+      <pixel-canvas id="decorative"><img src="/src/pixel-canvas/scene.svg" alt=""></pixel-canvas>
+      <pixel-canvas id="authored" aria-label="Mine"><img src="/src/pixel-canvas/scene.svg" alt="theirs"></pixel-canvas>`;
     const loaded = new Promise((r) => holder.querySelector("#p").addEventListener("load", r, { once: true }));
     document.body.append(holder);
     await loaded;
@@ -287,7 +287,7 @@ test("an <img> source draws when it loads, fires load, and names the result from
 test("an unreadable (cross-origin) source fires error and shows the original instead", async ({ page }) => {
   await mount(page, "", MODULES);
   const result = await page.evaluate(async () => {
-    const other = `http://127.0.0.1:${location.port}/src/pixelable/pixel-canvas/scene.svg`;
+    const other = `http://127.0.0.1:${location.port}/src/pixel-canvas/scene.svg`;
     document.body.innerHTML = `<pixel-canvas id="p"><img src="${other}" alt="elsewhere"></pixel-canvas>`;
     const p = document.getElementById("p");
     const error = await new Promise((r) => p.addEventListener("error", (e) => r(e.error?.name), { once: true }));
@@ -622,7 +622,7 @@ test.describe("effects over time", () => {
   test("effects get { time, frame }; fps redraws a still image; paused freezes the clock", async ({ page }) => {
     await setup(page, `<pixel-canvas id="p" fps="30" effects="clockwork()"><canvas data-source></canvas></pixel-canvas>`, [["#000"]]);
     const result = await page.evaluate(async () => {
-      const { definePixelEffect } = await import("/src/pixelable/effects.mjs");
+      const { definePixelEffect } = await import("/src/effects.mjs");
       const seen = [];
       definePixelEffect("clockwork", (image, params, { time, frame }) => {
         seen.push({ time, frame });
@@ -662,7 +662,7 @@ test.describe("effects over time", () => {
   test("glitch is repeatable for a moment of the clock and changes with it; amount 0 is a no-op", async ({ page }) => {
     await mount(page, "", MODULES);
     const result = await page.evaluate(async () => {
-      const glitch = await import("/src/pixelable/pixel-glitch/effect.mjs");
+      const glitch = await import("/src/pixel-glitch/effect.mjs");
       const make = () => {
         const image = new ImageData(32, 32);
         for (let i = 0; i < image.data.length; i += 4) image.data.set([(i / 4) % 32 * 8, (i / 128) * 8, 128, 255], i);
@@ -682,7 +682,7 @@ test.describe("effects over time", () => {
   test("wave slides rows along a sine wave that moves with time", async ({ page }) => {
     await mount(page, "", MODULES);
     const result = await page.evaluate(async () => {
-      const wave = await import("/src/pixelable/pixel-wave/effect.mjs");
+      const wave = await import("/src/pixel-wave/effect.mjs");
       const make = () => {
         const image = new ImageData(9, 4);
         for (let y = 0; y < 4; y++) image.data.set([255, 255, 255, 255], (y * 9 + 4) * 4); // a white column at x=4
@@ -771,7 +771,7 @@ test.describe("shaders", () => {
       [["rgb(100 100 100)"]],
     );
     await page.evaluate(async () => {
-      const { definePixelShader } = await import("/src/pixelable/shader.mjs");
+      const { definePixelShader } = await import("/src/shader.mjs");
       definePixelShader("brighten", "color = vec4(pixel.rgb + u_amount, 1.0);");
     });
     // 100/255 + 0.5 is 227.5 of 255: GPUs may round either way.

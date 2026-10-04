@@ -4,12 +4,12 @@ A pixel effect that pixelates: each `size`×`size` block of the image
 becomes its average color. Use it as `mosaic(size)` in a
 [`<pixel-canvas>`](../pixel-canvas/readme.md)'s `effects`, or as this
 element wrapped around the source. Part of
-[pixelable](../readme.md).
+[pixelable](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/domkit/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
 
 <pixel-canvas effects="mosaic(12)">
   <img src="screenshot.png" alt="A screenshot, pixelated for privacy" />

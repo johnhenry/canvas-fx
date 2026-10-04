@@ -5,12 +5,12 @@ one line per row, and a key saying what each character's color is. Blank
 lines separate animation frames, played at `fps`. It shows itself as a
 crisp, scaled-up image, and it can be the source of a
 [`<pixel-canvas>`](../pixel-canvas/readme.md), so every
-[effect](../readme.md#effects) applies. Part of [pixelable](../readme.md).
+[effect](../../README.md#effects) applies. Part of [pixelable](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/domkit/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
 
 <pixel-sprite colors=". transparent; # #3b2d1f; o gold" fps="6" alt="A spinning coin">
   .####.
@@ -49,7 +49,7 @@ rows shorter than the widest are padded with transparency.
 
 With more than one frame and an `fps`, it plays. `play()`, `pause()`, the
 `paused` attribute (write it to start paused), and `play`/`pause` events
-work as on [`<frame-timer>`](../../frame-timer/readme.md), and so do the
+work as on [`<frame-timer>`](https://github.com/johnhenry/domkit/blob/main/src/frame-timer/readme.md), and so do the
 `--play`, `--pause`, and `--toggle` invoker commands. `frame` is the frame
 showing (settable, wrapping), and `frames` is how many there are.
 `framechange` fires whenever it redraws. For visitors who prefer reduced
@@ -110,7 +110,7 @@ sharp, and the canvas redraws on every frame:
 
 | Property | Description |
 |---|---|
-| `--domkit-sprite-scale` | How many screen pixels each sprite pixel takes. Default 8. |
+| `--pixel-sprite-scale` | How many screen pixels each sprite pixel takes. Default 8. |
 
 <!-- api:end -->
 
@@ -118,7 +118,7 @@ sharp, and the canvas redraws on every frame:
 
 | Selector | Matches |
 |---|---|
-| `pixel-sprite` | The element: an inline block, `--domkit-sprite-scale` (default 8) screen pixels per sprite pixel, unless you size it |
+| `pixel-sprite` | The element: an inline block, `--pixel-sprite-scale` (default 8) screen pixels per sprite pixel, unless you size it |
 | `pixel-sprite::part(canvas)` | The canvas it's drawn on |
 
 Its text isn't displayed; only the drawing is.

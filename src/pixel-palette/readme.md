@@ -4,12 +4,12 @@ A pixel effect that limits the image to a palette, optionally with
 dithering, which spreads the error as patterns of dots so gradients
 survive. Use it as `palette(colors, dither)` in a [`<pixel-canvas>`](../pixel-canvas/readme.md)'s
 `effects`, or as this element wrapped around the source.
-Part of [pixelable](../readme.md).
+Part of [pixelable](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/domkit/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
 
 <pixel-canvas width="160" effects="palette(gameboy, ordered)">
   <img src="photo.jpg" alt="A photo in Game Boy colors" />
