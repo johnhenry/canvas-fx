@@ -10,6 +10,8 @@ export default class PixelShader extends HTMLElement {
    * child. */
   readonly source: string;
   apply(image: ImageData, context?: { time: number, frame: number }): ImageData;
+  /** The shader as a GPU pass, for <pixel-canvas gpu>. */
+  gpuPass(): { fragment: string, uniforms: Record<string, unknown> } | null;
 }
 
 declare global {

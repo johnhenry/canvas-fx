@@ -12,6 +12,8 @@ export { default as PixelChromaKey } from "./pixel-chroma-key/index.mjs";
 export { default as PixelGlitch } from "./pixel-glitch/index.mjs";
 export { default as PixelWave } from "./pixel-wave/index.mjs";
 export { default as PixelShader } from "./pixel-shader/index.mjs";
+export { default as PixelLens } from "./pixel-lens/index.mjs";
+export { default as PixelSpotlight } from "./pixel-spotlight/index.mjs";
 export { definePixelEffect, getPixelEffect, parseEffects, PixelEffect, effectRegistry } from "./effects.mjs";
 export { definePixelShader, runShader } from "./shader.mjs";
 export { dominantColors, toHex } from "./quantize.mjs";

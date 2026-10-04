@@ -32,6 +32,25 @@ export default class PixelCanvas extends HTMLElement {
   readonly palette: string[];
   /** The canvas showing the result (in the shadow root). */
   readonly canvas: HTMLCanvasElement;
+  /** Mirrors the `gpu` attribute. */
+  gpu: boolean;
+  /** Mirrors the `html` attribute. */
+  html: boolean;
+  /** Mirrors the `transition` attribute. */
+  transition: string;
+  /** Where the last redraw ran: `"gpu"`, `"cpu"`, or `""` before the first. */
+  readonly renderer: string;
+  /** A video stream of the result, like `HTMLCanvasElement.captureStream()`. */
+  captureStream(fps?: number): MediaStream;
+  /** Record the result as a video (WebM where supported, else MP4), for
+   * `duration` seconds. Effects that change over time need `fps` (or a
+   * playing video) to animate while it records. */
+  record(options?: { duration?: number, fps?: number, type?: string }): Promise<Blob>;
+  /** The result as an animated GIF, at the working size: `frames` frames
+   * (or `duration` seconds' worth) sampled `fps` times a second. Effects
+   * that change over time need `fps` (or a playing video) to animate while
+   * it captures. `loop`: 0 repeats forever, -1 plays once. */
+  toGIF(options?: { duration?: number, fps?: number, frames?: number, loop?: number }): Promise<Blob>;
   /** Draw now, instead of on the next frame. Returns whether it drew. */
   render(): boolean;
   /** The result as an image file, like `HTMLCanvasElement.toBlob()`. */

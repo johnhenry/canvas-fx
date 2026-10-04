@@ -1,4 +1,5 @@
 // palette(colors, dither): reduce the image to a palette, optionally dithered.
+import { gpuShader } from "../gpu.mjs";
 import { number, parseColor } from "../effects.mjs";
 import { dominantColors } from "../quantize.mjs";
 import PALETTES from "./palettes.mjs";
@@ -83,3 +84,45 @@ export function apply(image, p) {
 }
 
 export { PALETTES };
+
+// On the GPU: named or listed palettes of up to 64 colors, undithered or
+// with ordered dithering. `auto` and Floyd–Steinberg (which spreads error
+// pixel by pixel, in order) run on the CPU.
+const BAYER_GLSL = BAYER.map((n) => n.toFixed(6)).join(", ");
+export const gpu = {
+  fragment: gpuShader(`uniform vec3 u_palette[64];
+uniform int u_count;
+uniform float u_step;
+uniform float u_ordered;
+const float BAYER[16] = float[16](${BAYER_GLSL});
+void main() {
+  vec2 p = pixelAt();
+  vec4 c = sampleAt(p);
+  vec3 rgb = c.rgb * 255.0;
+  if (u_ordered > 0.5) rgb += BAYER[int(mod(p.y, 4.0)) * 4 + int(mod(p.x, 4.0))] * u_step;
+  vec3 best = u_palette[0];
+  float bestDistance = 1e20;
+  for (int i = 0; i < 64; i++) {
+    if (i >= u_count) break;
+    vec3 d = rgb - u_palette[i];
+    float distance = 0.3 * d.r * d.r + 0.59 * d.g * d.g + 0.11 * d.b * d.b;
+    if (distance < bestDistance) { bestDistance = distance; best = u_palette[i]; }
+  }
+  color = vec4(best / 255.0, c.a);
+}`),
+  uniforms: (p) => {
+    const palette = resolvePalette(p.colors);
+    const data = new Float32Array(64 * 3);
+    palette.slice(0, 64).forEach(([r, g, b], i) => data.set([r, g, b], i * 3));
+    return {
+      u_palette: data,
+      u_count: { int: Math.min(64, palette.length) },
+      u_step: 255 / Math.max(1, Math.cbrt(palette.length) * 1.5),
+      u_ordered: (p.dither ?? "none").trim() === "ordered" ? 1 : 0,
+    };
+  },
+  supports: (p) => {
+    const dither = (p.dither ?? "none").trim();
+    return (p.colors ?? "").trim().toLowerCase() !== "auto" && (dither === "none" || dither === "ordered") && resolvePalette(p.colors).length <= 64;
+  },
+};

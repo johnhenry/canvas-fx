@@ -36,7 +36,7 @@
     },
     {
       "name": "pixel-canvas",
-      "description": "Pixel effects on any image, video, canvas, or pixel sprite.\n\nEvents: `play`, `pause`, `load`, `palettechange`, `error`",
+      "description": "Pixel effects on any image, video, canvas, or pixel sprite.\n\nEvents: `play`, `pause`, `load`, `framechange`, `palettechange`, `error`",
       "attributes": [
         {
           "name": "width",
@@ -71,6 +71,15 @@
           "name": "html",
           "description": "Experimental: draw its own HTML content (live, and still interactive) through the effects, where the browser supports HTML-in-canvas; elsewhere the content shows as it is. Without `width`/`height`, one working pixel is one CSS pixel.",
           "valueSet": "v"
+        },
+        {
+          "name": "gpu",
+          "description": "Run the effects on the GPU (WebGL2) when every effect in the chain can: the source is uploaded once and nothing is read back (unless `swatches` needs it). Otherwise, or without WebGL2, they run on the CPU as usual. `renderer` says which ran.",
+          "valueSet": "v"
+        },
+        {
+          "name": "transition",
+          "description": "Animate changes to `effects` over this long (`400ms`, `0.5s`): numbers in the same effects are interpolated; a different list of effects cross-fades. Not for visitors who prefer reduced motion."
         }
       ],
       "references": [
@@ -226,6 +235,31 @@
       ]
     },
     {
+      "name": "pixel-lens",
+      "description": "A pixel effect: a magnifying glass at the pointer.",
+      "attributes": [
+        {
+          "name": "radius",
+          "description": "The lens's radius, in working pixels. Default 24."
+        },
+        {
+          "name": "zoom",
+          "description": "How much it enlarges. Default 2."
+        },
+        {
+          "name": "disabled",
+          "description": "Pass the image through unchanged.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-lens"
+        }
+      ]
+    },
+    {
       "name": "pixel-mosaic",
       "description": "A pixel effect: pixelate into blocks of one color.",
       "attributes": [
@@ -318,6 +352,35 @@
         {
           "name": "Documentation",
           "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-shader"
+        }
+      ]
+    },
+    {
+      "name": "pixel-spotlight",
+      "description": "A pixel effect: a spotlight that follows the pointer.",
+      "attributes": [
+        {
+          "name": "radius",
+          "description": "The lit circle's radius, in working pixels. Default 32."
+        },
+        {
+          "name": "softness",
+          "description": "How far the light fades out beyond the radius. Default 16."
+        },
+        {
+          "name": "dim",
+          "description": "How dark the rest gets, 0–1. Default 0.7."
+        },
+        {
+          "name": "disabled",
+          "description": "Pass the image through unchanged.",
+          "valueSet": "v"
+        }
+      ],
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/johnhenry/pixelable/tree/main/src/pixel-spotlight"
         }
       ]
     },

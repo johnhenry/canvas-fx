@@ -1,7 +1,7 @@
 // <pixel-palette colors="gameboy" dither="ordered">: the palette() effect
 // as an element. See readme.md.
 import { PixelEffect } from "../effects.mjs";
-import { params, apply, resolvePalette } from "./effect.mjs";
+import { params, apply, gpu, resolvePalette } from "./effect.mjs";
 
 /**
  * Reduces the image to a palette, optionally dithered. The element form of
@@ -16,7 +16,7 @@ import { params, apply, resolvePalette } from "./effect.mjs";
  * @attr {boolean} disabled - Pass the image through unchanged.
  */
 export default class PixelPalette extends PixelEffect {
-  static effect = { name: "palette", params, apply };
+  static effect = { name: "palette", params, apply, gpu };
 
   /**
    * The resolved palette, as `[r, g, b]` triples. Empty for `auto`, which

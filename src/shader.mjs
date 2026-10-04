@@ -7,6 +7,7 @@
 //   uniform vec2 u_resolution;   its size in pixels
 //   uniform float u_time;        seconds on the <pixel-canvas> clock
 //   uniform float u_frame;       its redraw count
+//   uniform vec3 u_pointer;      the pointer in pixels (x, y; z = 1 over the canvas)
 //   in vec2 v_uv;                this pixel, 0–1, with 0,0 at the top left
 //   out vec4 color;              what to write
 // and any other `u_name` they use is declared as a float, set from the
@@ -14,7 +15,7 @@
 // the body of one, with `vec4 pixel` already read from the image.
 import { definePixelEffect, number } from "./effects.mjs";
 
-const BUILT_IN = ["u_image", "u_resolution", "u_time", "u_frame"];
+const BUILT_IN = ["u_image", "u_resolution", "u_time", "u_frame", "u_pointer"];
 const VERTEX = `#version 300 es
 in vec2 position;
 out vec2 v_uv;
@@ -65,7 +66,7 @@ function complete(source) {
     "#version 300 es",
     "precision highp float;",
     ...BUILT_IN.filter((name) => !declared(name.slice(2))).map((name) =>
-      name === "u_image" ? "uniform sampler2D u_image;" : name === "u_resolution" ? "uniform vec2 u_resolution;" : `uniform float ${name};`,
+      name === "u_image" ? "uniform sampler2D u_image;" : name === "u_resolution" ? "uniform vec2 u_resolution;" : name === "u_pointer" ? "uniform vec3 u_pointer;" : `uniform float ${name};`,
     ),
     ...extras,
     "in vec2 v_uv;",
@@ -109,10 +110,10 @@ function compile(fragment) {
  * @param {ImageData} image
  * @param {string} source
  * @param {Record<string, string>} [params]
- * @param {{ time?: number, frame?: number }} [clock]
+ * @param {{ time?: number, frame?: number, pointer?: { x: number, y: number, inside: boolean } | null }} [clock]
  * @returns {ImageData}
  */
-export function runShader(image, source, params = {}, { time = 0, frame = 0 } = {}) {
+export function runShader(image, source, params = {}, { time = 0, frame = 0, pointer = null } = {}) {
   context();
   const { program, uniforms } = compile(complete(source));
   const { width, height } = image;
@@ -140,6 +141,7 @@ export function runShader(image, source, params = {}, { time = 0, frame = 0 } = 
   gl.uniform2f(location("u_resolution"), width, height);
   gl.uniform1f(location("u_time"), time);
   gl.uniform1f(location("u_frame"), frame);
+  gl.uniform3f(location("u_pointer"), pointer?.x ?? -1, pointer?.y ?? -1, pointer?.inside ? 1 : 0);
   for (const param of shaderParams(source)) {
     gl.uniform1f(location(`u_${param.replace(/-/g, "_")}`), number(params[param] ?? params[param.replace(/-/g, "_")], 0));
   }
@@ -167,5 +169,21 @@ export function runShader(image, source, params = {}, { time = 0, frame = 0 } = 
 export function definePixelShader(name, source, { params } = {}) {
   return definePixelEffect(name, (image, values, clock) => runShader(image, source, values, clock), {
     params: params ?? shaderParams(source),
+    gpu: shaderGpu(source),
+    pointer: /\bu_pointer\b/.test(source),
   });
+}
+
+/**
+ * A shader as a GPU effect for <pixel-canvas gpu>: the same complete
+ * fragment shader, with its `u_` uniforms set from the parameters.
+ * @param {string} source
+ * @returns {import("./effects.mjs").GpuEffect}
+ */
+export function shaderGpu(source) {
+  const names = shaderParams(source);
+  return {
+    fragment: complete(source),
+    uniforms: (params) => Object.fromEntries(names.map((param) => [`u_${param.replace(/-/g, "_")}`, number(params[param] ?? params[param.replace(/-/g, "_")], 0)])),
+  };
 }

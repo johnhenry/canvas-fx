@@ -1,6 +1,6 @@
 // <pixel-crt>: the crt() effect as an element. See readme.md.
 import { PixelEffect } from "../effects.mjs";
-import { params, apply } from "./effect.mjs";
+import { params, apply, gpu } from "./effect.mjs";
 
 /**
  * Makes the image look like an old screen: scanlines, a red/green/blue stripe mask, and a little glow. The element form of `crt(scanlines, mask, glow)`.
@@ -14,5 +14,5 @@ import { params, apply } from "./effect.mjs";
  * @attr {boolean} disabled - Pass the image through unchanged.
  */
 export default class PixelCrt extends PixelEffect {
-  static effect = { name: "crt", params, apply };
+  static effect = { name: "crt", params, apply, gpu };
 }

@@ -18,6 +18,8 @@ const ELEMENTS = {
   "pixel-glitch": "",
   "pixel-wave": "",
   "pixel-shader": '<script type="x-shader/x-fragment">color = pixel;</script>',
+  "pixel-lens": "",
+  "pixel-spotlight": "",
 };
 const MODULES = Object.keys(ELEMENTS).map((path) => `src/${path}/global.mjs`);
 

@@ -36,9 +36,21 @@ step. Split out of `@johnhenry/domkit`, whose conventions it keeps.
   project). The API may change before it ships; feature-detect
   (`"drawElementImage" in CanvasRenderingContext2D.prototype`), never
   version-sniff.
-- **A canvas's children shrink to fit.** Content slotted into the
-  `<canvas layoutsubtree>` doesn't stretch like a block; `::slotted(*)`
-  stretches it (the author's width still wins).
+- **A canvas's children shrink to fit,** so the content isn't slotted
+  straight into the `<canvas layoutsubtree>`: a block `<div>` (the
+  `html-content` part) holds it, lays it out as anywhere else, and is the
+  one element drawn.
+- **`texElementImage2D(target, internalformat, element)`** is the shape in
+  Chromium 153, not the explainer's; the internal format must be `RGBA8`,
+  `SRGB8_ALPHA8`, `RGBA16F`, or `RGBA32F`. Probe a new Chromium before
+  trusting the docs.
+- **An element with no content isn't drawn** by HTML-in-canvas in
+  Chromium 153 (a `<div>` with only a background stays transparent). Tests
+  give such elements text.
+- **Every GPU effect must draw what its CPU version draws.**
+  `expansions.spec.mjs` compares the two pixel by pixel; the only allowed
+  differences are documented per effect (threshold edges, premultiplied
+  alpha on soft edges, different resamplers for HTML).
 - **`@readonly` on a getter breaks the generated types** (`readonly get`
   is invalid TypeScript). A getter without a setter is read-only anyway.
 - **With `html`, `<pixel-canvas>` is never an image**, supported or not:

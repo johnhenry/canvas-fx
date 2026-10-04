@@ -2,7 +2,7 @@
 // <script type="x-shader/x-fragment">. Its attributes set the shader's
 // `u_` uniforms. See readme.md and ../shader.mjs.
 import { PixelEffect } from "../effects.mjs";
-import { runShader } from "../shader.mjs";
+import { runShader, shaderGpu } from "../shader.mjs";
 
 /**
  * Runs the image through the GLSL fragment shader in its
@@ -34,5 +34,16 @@ export default class PixelShader extends PixelEffect {
   apply(image, context) {
     const source = this.source;
     return source.trim() ? runShader(image, source, this.params, context) : image;
+  }
+
+  /**
+   * The shader as a GPU pass, for <pixel-canvas gpu>.
+   * @returns {{ fragment: string, uniforms: Record<string, unknown> } | null}
+   */
+  gpuPass() {
+    const source = this.source;
+    if (!source.trim()) return null;
+    const gpu = shaderGpu(source);
+    return { fragment: gpu.fragment, uniforms: gpu.uniforms(this.params) };
   }
 }

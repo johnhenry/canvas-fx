@@ -10,21 +10,46 @@ export type EffectParams = Record<string, string> & {
 export type EffectContext = {
     time: number;
     frame: number;
+    pointer?: {
+        x: number;
+        y: number;
+        inside: boolean;
+        down: boolean;
+    } | null;
+};
+export type GpuEffect = {
+    fragment: string;
+    uniforms?: (params: EffectParams, size: {
+        width: number;
+        height: number;
+    }, context: EffectContext) => Record<string, unknown>;
+    supports?: (params: EffectParams) => boolean;
 };
 export type Effect = {
     name: string;
     params: string[];
     apply: (image: ImageData, params: EffectParams, context: EffectContext) => ImageData | void;
+    gpu?: GpuEffect;
+    pointer?: boolean;
 };
 /**
  * @typedef {Record<string, string> & { args: string[] }} EffectParams
  *   Parameter values as written (strings), by name. `args` holds
  *   positional values beyond the declared parameters.
- * @typedef {{ time: number, frame: number }} EffectContext
+ * @typedef {{ time: number, frame: number, pointer?: { x: number, y: number, inside: boolean, down: boolean } | null }} EffectContext
  *   When the effect is running: `time` is seconds on the <pixel-canvas>
- *   clock (which stops while it's paused), `frame` counts its redraws.
- *   Effects that change over time use these; most ignore them.
- * @typedef {{ name: string, params: string[], apply: (image: ImageData, params: EffectParams, context: EffectContext) => ImageData | void }} Effect
+ *   clock (which stops while it's paused), `frame` counts its redraws, and
+ *   `pointer` is where the pointer is, in the image's pixels (0,0 at the
+ *   top left; null before it's been over the canvas). Effects that change
+ *   over time or follow the pointer use these; most ignore them.
+ * @typedef {{
+ *   fragment: string,
+ *   uniforms?: (params: EffectParams, size: { width: number, height: number }, context: EffectContext) => Record<string, unknown>,
+ *   supports?: (params: EffectParams) => boolean,
+ * }} GpuEffect
+ *   The same effect as a GLSL fragment shader, for <pixel-canvas gpu> (see
+ *   gpu.mjs). `supports` says when it can't (some parameters need the CPU).
+ * @typedef {{ name: string, params: string[], apply: (image: ImageData, params: EffectParams, context: EffectContext) => ImageData | void, gpu?: GpuEffect, pointer?: boolean }} Effect
  */
 /**
  * Register an effect under `name`: usable as `name(…)` in an `effects`
@@ -32,15 +57,19 @@ export type Effect = {
  * `params` lists the parameter names, in the order positional values fill
  * them. `apply` gets the ImageData and the parameter values (strings), and
  * returns an ImageData (or changes the one it got). A third argument,
- * `{ time, frame }`, is there for effects that change over time.
+ * `{ time, frame, pointer }`, is there for effects that change over time or
+ * follow the pointer. `gpu` is the same effect in GLSL, for `<pixel-canvas
+ * gpu>`; `pointer: true` redraws the canvas as the pointer moves.
  * @param {string} name
  * @param {(image: ImageData, params: EffectParams, context: EffectContext) => ImageData | void} apply
- * @param {{ params?: string[], element?: boolean }} [options]
+ * @param {{ params?: string[], element?: boolean, gpu?: GpuEffect, pointer?: boolean }} [options]
  * @returns {Effect}
  */
-export declare function definePixelEffect(name: string, apply: (image: ImageData, params: EffectParams, context: EffectContext) => ImageData | void, { params, element }?: {
+export declare function definePixelEffect(name: string, apply: (image: ImageData, params: EffectParams, context: EffectContext) => ImageData | void, { params, element, gpu, pointer }?: {
     params?: string[];
     element?: boolean;
+    gpu?: GpuEffect;
+    pointer?: boolean;
 }): Effect;
 /**
  * The registered effect called `name`, if any.
@@ -90,6 +119,20 @@ export declare class PixelEffect extends HTMLElement {
      */
     apply(image: ImageData, context?: EffectContext): ImageData;
     /**
+     * This effect as a GPU pass (a fragment shader and its uniforms), or null
+     * if it can only run on the CPU.
+     * @param {{ width: number, height: number }} size
+     * @param {EffectContext} context
+     * @returns {{ fragment: string, uniforms: Record<string, unknown> } | null}
+     */
+    gpuPass(size: {
+        width: number;
+        height: number;
+    }, context: EffectContext): {
+        fragment: string;
+        uniforms: Record<string, unknown>;
+    } | null;
+    /**
      * Whether the effect is switched off (the image passes through).
      * Mirrors the `disabled` attribute.
      * @type {boolean}
@@ -132,3 +175,34 @@ export declare function random(seed: number): () => number;
  * @returns {number}
  */
 export declare const luminance: (r: number, g: number, b: number) => number;
+/**
+ * An effect with these parameters as a GPU pass, or null if it has no GPU
+ * version or this use of it needs the CPU.
+ * @param {Effect} effect
+ * @param {EffectParams} params
+ * @param {{ width: number, height: number }} size
+ * @param {EffectContext} context
+ * @returns {{ fragment: string, uniforms: Record<string, unknown> } | null}
+ */
+export declare function gpuPass(effect: Effect, params: EffectParams, size: {
+    width: number;
+    height: number;
+}, context: EffectContext): {
+    fragment: string;
+    uniforms: Record<string, unknown>;
+} | null;
+/**
+ * The calls part of the way from one `effects` list to another, for
+ * transitions: when both name the same effects in the same order, every
+ * number that's in both (with the same unit) is interpolated, and anything
+ * else takes the new value. When the effects differ, returns null (the
+ * caller cross-fades instead).
+ * @param {string} from
+ * @param {string} to
+ * @param {number} t 0 (from) to 1 (to)
+ * @returns {{ name: string, args: string[] }[] | null}
+ */
+export declare function interpolateEffects(from: string, to: string, t: number): {
+    name: string;
+    args: string[];
+}[] | null;

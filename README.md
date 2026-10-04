@@ -80,13 +80,20 @@ published to npm under any name: `0.0.0` is its first version.
 | `chroma-key(color, tolerance, softness)` | [`<pixel-chroma-key>`](src/pixel-chroma-key/readme.md) | Makes a color transparent (green screen) |
 | `glitch(amount, rate)` | [`<pixel-glitch>`](src/pixel-glitch/readme.md) | Animated digital breakup |
 | `wave(amplitude, wavelength, speed)` | [`<pixel-wave>`](src/pixel-wave/readme.md) | Rows rippling along a moving sine wave |
+| `lens(radius, zoom)` | [`<pixel-lens>`](src/pixel-lens/readme.md) | A magnifying glass that follows the pointer |
+| `spotlight(radius, softness, dim)` | [`<pixel-spotlight>`](src/pixel-spotlight/readme.md) | Light around the pointer, the rest dimmed |
 
 The [`<pixel-canvas>`](src/pixel-canvas/readme.md) draws the result. Its
 source can be an `<img>`, a `<video>`, a `<canvas>`, or a
 [`<pixel-sprite>`](src/pixel-sprite/readme.md): pixel art written as text,
-with animation frames. With `html` (experimental), it draws its own HTML
-content, live and still interactive, where the browser has
+with animation frames, or another `<pixel-canvas>` (they chain). With
+`html` (experimental), it draws its own HTML content, live and still
+interactive, where the browser has
 [HTML-in-canvas](src/pixel-canvas/readme.md#html-content-experimental).
+It also runs whole chains on the GPU (`gpu`), animates between settings
+(`transition="400ms"`), follows the pointer, and records itself as an
+animated GIF (`toGIF()`) or a video (`record()`); its
+[guide](src/pixel-canvas/readme.md) has each.
 `global.mjs` here registers it and every effect element; for the
 `effects` attribute alone, `pixel-canvas/global.mjs` is enough.
 
@@ -153,6 +160,14 @@ an attribute. Any element with an `apply(image)` method works.
 
 ## GPU effects
 
+`<pixel-canvas gpu>` runs the whole chain on WebGL2 when every effect in it
+can (most built-ins, every shader): upload once, a shader per effect,
+nothing read back. A chain with a CPU-only step (`glitch`, `palette(auto)`,
+Floyd–Steinberg, a JavaScript effect) runs on the CPU; `renderer` says
+which ran. Your own effect gets a GPU version with
+`definePixelEffect(name, apply, { gpu: { fragment, uniforms } })` (see
+`gpu.mjs`).
+
 [`<pixel-shader>`](src/pixel-shader/readme.md) runs a GLSL fragment shader
 you write in a `<script type="x-shader/x-fragment">` child, on the GPU,
 with the image, its size, and the clock provided, and its `u_` uniforms
@@ -189,9 +204,10 @@ has the details.
 
 ## Notes
 
-- Effects run on the CPU, once per redraw. For video, keep the working
-  size small (`<pixel-canvas width="160">`) and scale the result up with
-  CSS. It's drawn with `image-rendering: pixelated`, so it stays crisp.
+- Without `gpu`, effects run on the CPU, once per redraw. For video, use
+  `gpu`, or keep the working size small (`<pixel-canvas width="160">`) and
+  scale the result up with CSS. It's drawn with `image-rendering:
+  pixelated`, so it stays crisp.
 
 ## Adding a new effect
 
@@ -216,8 +232,11 @@ tag. Prefer this whenever the new behavior is a variant of an existing look.
 4. **The one part that isn't boilerplate: the pixel math.** Work on the
    `ImageData` in place and return it; use `random(seed)` rather than
    `Math.random()` so a paused canvas doesn't flicker; read `time` only if
-   the effect changes over time. For GPU work, write it as a
-   `definePixelShader()` instead.
+   the effect changes over time, and `pointer` only if it follows the
+   pointer (then pass `{ pointer: true }`). For `<pixel-canvas gpu>`, give
+   it a `gpu: { fragment, uniforms }` version too (built with `gpuShader()`
+   from `gpu.mjs`), and a test that the two draw the same pixels
+   (`test/browser/expansions.spec.mjs` does this for every built-in).
 
 Then: a test in `test/browser/pixelable.spec.mjs` that checks actual pixels
 (not just that the function ran), a row in the [Effects](#effects) table, a

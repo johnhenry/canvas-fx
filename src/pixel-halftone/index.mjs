@@ -1,6 +1,6 @@
 // <pixel-halftone>: the halftone() effect as an element. See readme.md.
 import { PixelEffect } from "../effects.mjs";
-import { params, apply } from "./effect.mjs";
+import { params, apply, gpu } from "./effect.mjs";
 
 /**
  * Turns the image into printed dots: each cell of a rotated grid becomes one dot, larger where it's darker. The element form of `halftone(size, angle, ink, paper)`.
@@ -15,5 +15,5 @@ import { params, apply } from "./effect.mjs";
  * @attr {boolean} disabled - Pass the image through unchanged.
  */
 export default class PixelHalftone extends PixelEffect {
-  static effect = { name: "halftone", params, apply };
+  static effect = { name: "halftone", params, apply, gpu };
 }

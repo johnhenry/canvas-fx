@@ -1,6 +1,6 @@
 // <pixel-grid size="8">: the grid() effect as an element. See readme.md.
 import { PixelEffect } from "../effects.mjs";
-import { params, apply } from "./effect.mjs";
+import { params, apply, gpu } from "./effect.mjs";
 
 /**
  * Draws grid lines every `size` pixels. The element form of
@@ -15,5 +15,5 @@ import { params, apply } from "./effect.mjs";
  * @attr {boolean} disabled - Pass the image through unchanged.
  */
 export default class PixelGrid extends PixelEffect {
-  static effect = { name: "grid", params, apply };
+  static effect = { name: "grid", params, apply, gpu };
 }

@@ -20,6 +20,8 @@
     "src/effects.mjs",
     "src/pixel-palette/palettes.mjs",
     "src/quantize.mjs",
-    "src/shader.mjs"
+    "src/shader.mjs",
+    "src/gpu.mjs",
+    "src/gif.mjs"
   ]
 }

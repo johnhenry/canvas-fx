@@ -33,6 +33,40 @@ published to npm under any name, so `0.0.0` is its first version; domkit
   still interactive, with the proposed HTML-in-canvas API; elsewhere the
   content shows as it is: 3fa83ef (was johnhenry/domkit#43, a draft).
 
+**Added since the split** (pixelable#1):
+
+- **`<pixel-canvas gpu>`: whole chains on the GPU.** The source is uploaded
+  once (an image, video, or canvas with `texImage2D`; live HTML with
+  `texElementImage2D`), each effect is a fragment shader passing a texture
+  to the next, and the result is drawn without a read-back (unless
+  `swatches` needs one). `mosaic`, `palette` (named or listed, up to 64
+  colors, undithered or ordered), `grid`, `adjust`, `halftone`, `outline`,
+  `crt`, `chroma-key`, `wave`, `lens`, `spotlight`, `<pixel-shader>`, and
+  `definePixelShader()` effects run there, and draw what the CPU draws (the
+  tests compare every one pixel by pixel). Anything else in the chain keeps
+  it on the CPU; `renderer` says which ran. `definePixelEffect(…, { gpu })`
+  gives your own effect a GPU version (`gpu.mjs`: `gpuShader()`,
+  `pipelineFor()`).
+- **Effects that follow the pointer:** effects get `pointer` (`{ x, y,
+  inside, down }` in the image's pixels), shaders get `u_pointer`, and a
+  canvas with one redraws as the pointer moves. New: `lens(radius, zoom)`
+  and `spotlight(radius, softness, dim)` (and `<pixel-lens>`,
+  `<pixel-spotlight>`).
+- **`transition="400ms"`:** changes to `effects` animate, interpolating the
+  numbers in the same effects, or cross-fading to a different list; not for
+  visitors who prefer reduced motion. `interpolateEffects()` in
+  `effects.mjs`.
+- **Chaining:** a `<pixel-canvas>` fires `framechange` after each redraw and
+  exposes `canvas`, so it's another `<pixel-canvas>`'s source.
+- **Recording:** `captureStream(fps)`, `record({ duration, fps })` (WebM or
+  MP4, with `MediaRecorder`), and `toGIF({ frames | duration, fps, loop })`,
+  an animated GIF from a built-in encoder (`gif.mjs`, `encodeGIF()`), exact
+  colors for pixel art.
+- **`<pixel-canvas html>` draws one block holding its content,** so the
+  content lays out as it would anywhere else and bare text is drawn too
+  (it was skipped). `gpu`, `html`, and `transition` properties mirror their
+  attributes.
+
 **Changed in the split:**
 
 - **Import paths are `@johnhenry/pixelable/…`,** not
