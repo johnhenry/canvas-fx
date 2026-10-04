@@ -1,4 +1,5 @@
 // mosaic(size): pixelate. Each size×size block becomes its average color.
+import { gpuShader } from "../gpu.mjs";
 import { number } from "../effects.mjs";
 
 export const params = ["size"];
@@ -28,3 +29,24 @@ export function apply(image, p) {
   }
   return image;
 }
+
+// On the GPU: each pixel averages its block (blocks up to 64 pixels wide).
+export const gpu = {
+  fragment: gpuShader(`uniform float u_size;
+void main() {
+  vec2 p = pixelAt();
+  vec2 topLeft = floor(p / u_size) * u_size;
+  vec2 span = min(topLeft + u_size, u_resolution) - topLeft;
+  vec4 sum = vec4(0.0);
+  for (int y = 0; y < 64; y++) {
+    if (float(y) >= span.y) break;
+    for (int x = 0; x < 64; x++) {
+      if (float(x) >= span.x) break;
+      sum += sampleAt(topLeft + vec2(x, y));
+    }
+  }
+  color = sum / (span.x * span.y);
+}`),
+  uniforms: (p) => ({ u_size: Math.floor(number(p.size, 8, { min: 1 })) }),
+  supports: (p) => Math.floor(number(p.size, 8, { min: 1 })) <= 64,
+};

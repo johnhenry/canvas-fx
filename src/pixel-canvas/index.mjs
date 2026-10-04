@@ -26,6 +26,13 @@
 //     <form>…</form>
 //   </pixel-canvas>
 //
+// More:
+//   gpu          run the whole chain on the GPU (WebGL2) when every effect can
+//   transition   animate between `effects` values ("400ms")
+//   lens(), spotlight(), and your own effects follow the pointer
+//   a <pixel-canvas> can be another's source (it fires `framechange`)
+//   captureStream(), record() (video), toGIF() (an animated GIF)
+//
 // The
 // light-DOM content stays in the document (so the image loads and stays
 // the source of truth) but isn't displayed: a canvas in this element's
@@ -33,8 +40,10 @@
 // be read, the original content shows instead. See readme.md.
 
 import "../builtins.mjs";
-import { effectRegistry, getPixelEffect, parseEffects, resolveParams } from "../effects.mjs";
+import { effectRegistry, getPixelEffect, gpuPass, interpolateEffects, parseEffects, resolveParams } from "../effects.mjs";
 import { dominantColors, toHex } from "../quantize.mjs";
+import { gpuAvailable, pipelineFor, sharedContext } from "../gpu.mjs";
+import { encodeGIF } from "../gif.mjs";
 
 const NATIVE_SOURCES = ["img", "video", "canvas"];
 // HTML-in-canvas (WICG; in Chromium behind a flag or an origin trial).
@@ -64,11 +73,14 @@ const setAttr = (element, name, value) => {
  * @attr {number} fps - Redraw at this rate, so effects that change over time (`glitch`, `wave`, your own) animate even on a still image. Without it, it redraws only when something changes (or every frame of a playing video).
  * @attr {boolean} paused - Stops the clock effects animate by, and the `fps` redraws. Reflects; write it in markup to start paused.
  * @attr {boolean} html - Experimental: draw its own HTML content (live, and still interactive) through the effects, where the browser supports HTML-in-canvas; elsewhere the content shows as it is. Without `width`/`height`, one working pixel is one CSS pixel.
+ * @attr {boolean} gpu - Run the effects on the GPU (WebGL2) when every effect in the chain can: the source is uploaded once and nothing is read back (unless `swatches` needs it). Otherwise, or without WebGL2, they run on the CPU as usual. `renderer` says which ran.
+ * @attr {string} transition - Animate changes to `effects` over this long (`400ms`, `0.5s`): numbers in the same effects are interpolated; a different list of effects cross-fades. Not for visitors who prefer reduced motion.
  *
  * @fires load - The first frame of a source was drawn.
  * @fires play - The clock started or resumed.
  * @fires pause - The clock paused.
  * @fires palettechange - With `swatches`: the published colors changed.
+ * @fires framechange - After each redraw, so a `<pixel-canvas>` can be another one's source.
  * @fires error - The source can't be read (for example, a cross-origin image without CORS) or an effect threw: an `ErrorEvent`, and the original content is shown instead. Also fired, once per name, for an unknown effect in `effects`, which is skipped.
  *
  * @csspart canvas - The `<canvas>` showing the result.
@@ -77,7 +89,7 @@ const setAttr = (element, name, value) => {
  * Invoker commands: `--play`, `--pause`, `--toggle`.
  */
 export default class PixelCanvas extends HTMLElement {
-  static observedAttributes = ["width", "height", "effects", "swatches", "swatches-target", "fps", "paused", "html"];
+  static observedAttributes = ["width", "height", "effects", "swatches", "swatches-target", "fps", "paused", "html", "gpu", "transition"];
 
   #canvas;
   #slot;
@@ -116,10 +128,8 @@ export default class PixelCanvas extends HTMLElement {
       " :host([data-html]), :host([data-html-unsupported]) { display: block; }",
       " :host([data-html]) canvas[part=canvas], :host([data-html-unsupported]) canvas { display: none; }",
       " :host([data-html]) slot, :host([data-html-unsupported]) slot { display: contents; }",
-      " canvas[part=html-canvas] { display: block; inline-size: 100%; }",
-      // A canvas's children shrink to fit; stretch them like blocks
-      // elsewhere (the author's own width still wins).
-      " :host([data-html]) ::slotted(*) { box-sizing: border-box; inline-size: 100%; }",
+      " canvas[part=html-canvas] { display: block; inline-size: 100%; image-rendering: auto; }",
+      " [part=html-content] { display: block; }",
     );
     this.#canvas = document.createElement("canvas");
     this.#canvas.setAttribute("part", "canvas");
@@ -127,6 +137,22 @@ export default class PixelCanvas extends HTMLElement {
     this.#canvas.height = 0;
     this.#slot = document.createElement("slot");
     shadow.append(style, this.#canvas, this.#slot);
+    // Where the pointer is, in the image's pixels, for effects that follow it.
+    const track = (event) => {
+      const target = this.#htmlCanvas ?? this.#canvas;
+      const box = target.getBoundingClientRect();
+      const [width, height] = this.#htmlCanvas ? this.#workSize : [this.#canvas.width, this.#canvas.height];
+      if (!box.width || !box.height || !width) return;
+      const inside = event.type !== "pointerleave" && event.clientX >= box.left && event.clientX < box.right && event.clientY >= box.top && event.clientY < box.bottom;
+      this.#pointer = {
+        x: ((event.clientX - box.left) / box.width) * width,
+        y: ((event.clientY - box.top) / box.height) * height,
+        inside,
+        down: event.buttons > 0,
+      };
+      if (this.#usesPointer) this.#schedule();
+    };
+    for (const type of ["pointermove", "pointerdown", "pointerup", "pointerleave"]) this.addEventListener(type, track);
     this.addEventListener("command", (event) => {
       if (event.command === "--play") this.play();
       else if (event.command === "--pause") this.pause();
@@ -173,6 +199,7 @@ export default class PixelCanvas extends HTMLElement {
     }
     if (name === "fps") this.#runClock();
     if (name === "html") this.#setHTMLMode();
+    if (name === "effects") this.#startTransition(previous, current);
     this.#schedule();
   }
 
@@ -333,7 +360,117 @@ export default class PixelCanvas extends HTMLElement {
    * @readonly
    */
   get canvas() {
-    return this.#canvas;
+    return this.#htmlCanvas ?? this.#canvas;
+  }
+
+  /**
+   * Mirrors the `gpu` attribute.
+   * @type {boolean}
+   */
+  get gpu() {
+    return this.hasAttribute("gpu");
+  }
+  set gpu(value) {
+    this.toggleAttribute("gpu", Boolean(value));
+  }
+
+  /**
+   * Mirrors the `html` attribute.
+   * @type {boolean}
+   */
+  get html() {
+    return this.hasAttribute("html");
+  }
+  set html(value) {
+    this.toggleAttribute("html", Boolean(value));
+  }
+
+  /**
+   * Mirrors the `transition` attribute.
+   * @type {string}
+   */
+  get transition() {
+    return this.getAttribute("transition") ?? "";
+  }
+  set transition(value) {
+    this.setAttribute("transition", value);
+  }
+
+  /**
+   * Where the last redraw ran: `"gpu"`, `"cpu"`, or `""` before the first.
+   * @type {string}
+   */
+  get renderer() {
+    return this.#renderer;
+  }
+  #renderer = "";
+
+  /**
+   * A video stream of the result, like `HTMLCanvasElement.captureStream()`.
+   * @param {number} [fps]
+   * @returns {MediaStream}
+   */
+  captureStream(fps) {
+    return this.canvas.captureStream(fps);
+  }
+
+  /**
+   * Record the result as a video (WebM where supported, else MP4), for
+   * `duration` seconds. Effects that change over time need `fps` (or a
+   * playing video) to animate while it records.
+   * @param {{ duration?: number, fps?: number, type?: string }} [options]
+   * @returns {Promise<Blob>}
+   */
+  record({ duration = 3, fps = 30, type } = {}) {
+    const mime = type ?? ["video/webm;codecs=vp9", "video/webm", "video/mp4"].find((t) => globalThis.MediaRecorder?.isTypeSupported(t));
+    if (!mime) return Promise.reject(new Error("This browser can't record video (no MediaRecorder type it supports)"));
+    const recorder = new MediaRecorder(this.captureStream(fps), { mimeType: mime });
+    const chunks = [];
+    recorder.addEventListener("dataavailable", (event) => event.data.size && chunks.push(event.data));
+    return new Promise((resolve, reject) => {
+      recorder.addEventListener("stop", () => resolve(new Blob(chunks, { type: mime.split(";")[0] })));
+      recorder.addEventListener("error", (event) => reject(event.error ?? new Error("Recording failed")));
+      recorder.start();
+      // Draw at least once so a still image records a frame.
+      this.render();
+      setTimeout(() => recorder.state !== "inactive" && recorder.stop(), duration * 1000);
+    });
+  }
+
+  /**
+   * The result as an animated GIF, at the working size: `frames` frames
+   * (or `duration` seconds' worth) sampled `fps` times a second. Effects
+   * that change over time need `fps` (or a playing video) to animate while
+   * it captures. `loop`: 0 repeats forever, -1 plays once.
+   * @param {{ duration?: number, fps?: number, frames?: number, loop?: number }} [options]
+   * @returns {Promise<Blob>}
+   */
+  async toGIF({ duration = 2, fps = 10, frames, loop = 0 } = {}) {
+    const count = Math.max(1, Math.round(frames ?? duration * fps));
+    const images = [];
+    for (let i = 0; i < count; i++) {
+      if (i) await new Promise((resolve) => setTimeout(resolve, 1000 / fps));
+      else this.render();
+      const image = this.#snapshot();
+      if (image) images.push(image);
+    }
+    if (!images.length) throw new Error("Nothing has been drawn yet");
+    return new Blob([encodeGIF(images, { delay: 1000 / fps, loop })], { type: "image/gif" });
+  }
+
+  // The result now, as ImageData at the working size.
+  #snapshot() {
+    if (this.#htmlCanvas) {
+      const [width, height] = this.#workSize;
+      if (!width || !height) return null;
+      const work = new OffscreenCanvas(width, height).getContext("2d", { willReadFrequently: true });
+      work.imageSmoothingEnabled = false;
+      work.drawImage(this.#htmlCanvas, 0, 0, width, height);
+      return work.getImageData(0, 0, width, height);
+    }
+    const { width, height } = this.#canvas;
+    if (!width || !height) return null;
+    return this.#canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, width, height);
   }
 
   /**
@@ -413,15 +550,17 @@ export default class PixelCanvas extends HTMLElement {
     return NATIVE_SOURCES.includes(source.localName) ? source : source.canvas;
   }
 
-  #size(source) {
+  #natural(source) {
     source = this.#drawable(source);
-    const natural =
-      source instanceof HTMLImageElement
-        ? [source.naturalWidth, source.naturalHeight]
-        : source instanceof HTMLVideoElement
-          ? [source.videoWidth, source.videoHeight]
-          : [source.width, source.height];
-    const [w, h] = natural;
+    return source instanceof HTMLImageElement
+      ? [source.naturalWidth, source.naturalHeight]
+      : source instanceof HTMLVideoElement
+        ? [source.videoWidth, source.videoHeight]
+        : [source.width, source.height];
+  }
+
+  #size(source) {
+    const [w, h] = this.#natural(source);
     if (!w || !h) return null;
     const width = Math.floor(Number(this.getAttribute("width")));
     const height = Math.floor(Number(this.getAttribute("height")));
@@ -451,17 +590,44 @@ export default class PixelCanvas extends HTMLElement {
     if (!size) return false;
     const [width, height] = size;
     try {
-      const work = new OffscreenCanvas(width, height).getContext("2d", { willReadFrequently: true });
       const drawable = this.#drawable(source);
-      // Shrinking smooths (averaging); enlarging doesn't, so pixel art and
-      // small sources stay crisp.
-      work.imageSmoothingEnabled = width < (drawable.naturalWidth || drawable.videoWidth || drawable.width);
-      work.drawImage(drawable, 0, 0, width, height);
-      const image = this.#applyEffects(work.getImageData(0, 0, width, height));
-      if (this.#canvas.width !== image.width) this.#canvas.width = image.width;
-      if (this.#canvas.height !== image.height) this.#canvas.height = image.height;
-      this.#canvas.getContext("2d").putImageData(image, 0, 0);
-      this.#publishSwatches(image);
+      const [naturalWidth, naturalHeight] = this.#natural(source);
+      const plan = this.#plan();
+      const steps = this.hasAttribute("gpu") ? this.#gpuSteps(plan, { width, height }) : null;
+      if (steps && gpuAvailable()) {
+        // GPU: upload once, run the chain, copy the result across (no read-back).
+        const gl = sharedContext();
+        const image = pipelineFor(gl).run({
+          upload: (gl) => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, drawable),
+          sourceWidth: naturalWidth,
+          sourceHeight: naturalHeight,
+          width,
+          height,
+          steps,
+          present: { width, height },
+          context: plan.context,
+          read: this.swatches > 0,
+        });
+        if (this.#canvas.width !== width) this.#canvas.width = width;
+        if (this.#canvas.height !== height) this.#canvas.height = height;
+        const output = this.#canvas.getContext("2d");
+        output.clearRect(0, 0, width, height);
+        output.drawImage(gl.canvas, 0, 0);
+        this.#publishSwatches(image);
+        this.#renderer = "gpu";
+      } else {
+        const work = new OffscreenCanvas(width, height).getContext("2d", { willReadFrequently: true });
+        // Shrinking smooths (averaging); enlarging doesn't, so pixel art and
+        // small sources stay crisp.
+        work.imageSmoothingEnabled = width < naturalWidth;
+        work.drawImage(drawable, 0, 0, width, height);
+        const image = this.#cpu(work.getImageData(0, 0, width, height), plan);
+        if (this.#canvas.width !== image.width) this.#canvas.width = image.width;
+        if (this.#canvas.height !== image.height) this.#canvas.height = image.height;
+        this.#canvas.getContext("2d").putImageData(image, 0, 0);
+        this.#publishSwatches(image);
+        this.#renderer = "cpu";
+      }
     } catch (error) {
       this.#fail(error);
       return false;
@@ -473,31 +639,125 @@ export default class PixelCanvas extends HTMLElement {
       this.#loadedSrc = source instanceof HTMLImageElement ? source.currentSrc : null;
       this.dispatchEvent(new Event("load"));
     }
+    this.dispatchEvent(new Event("framechange"));
     return true;
   }
   #loadedSrc = null;
 
-  // The effect elements around the source, then the `effects` list.
-  #applyEffects(image) {
-    const context = { time: this.time, frame: this.#draws++ };
-    for (const effect of this.effectElements) {
-      if (effect.hasAttribute("disabled")) continue;
-      const result = effect.apply(image, context);
-      if (result instanceof ImageData) image = result;
-    }
-    for (const { name, args } of parseEffects(this.getAttribute("effects"))) {
-      const effect = getPixelEffect(name);
-      if (!effect) {
-        this.#unknown(name);
-        continue;
+  // --- what to run --------------------------------------------------------
+
+  #pointer = null;
+  #usesPointer = false;
+  #workSize = [0, 0]; // with `html`: the working size of the last paint
+
+  // The effect elements around the source (innermost first), then the
+  // `effects` list: mid-transition, interpolated, or two lists to fade.
+  #plan() {
+    const context = { time: this.time, frame: this.#draws++, pointer: this.#pointer };
+    const elements = this.effectElements.filter((element) => !element.hasAttribute("disabled"));
+    const resolve = (calls) =>
+      calls.flatMap(({ name, args }) => {
+        const effect = getPixelEffect(name);
+        if (!effect) {
+          this.#unknown(name);
+          return [];
+        }
+        return [{ effect, params: resolveParams(effect, args) }];
+      });
+    let calls;
+    let fade = null;
+    const t = this.#transitionProgress();
+    if (t === null) calls = resolve(parseEffects(this.getAttribute("effects")));
+    else {
+      const between = interpolateEffects(this.#transition.from, this.#transition.to, t);
+      if (between) calls = resolve(between);
+      else {
+        calls = resolve(parseEffects(this.#transition.to));
+        fade = { from: resolve(parseEffects(this.#transition.from)), t };
       }
-      const result = effect.apply(image, resolveParams(effect, args), context);
+    }
+    this.#usesPointer =
+      elements.some((element) => element.constructor.effect?.pointer || /\bu_pointer\b/.test(element.source ?? "")) ||
+      [...calls, ...(fade?.from ?? [])].some(({ effect }) => effect.pointer);
+    return { elements, calls, fade, context };
+  }
+
+  // On the CPU: each effect in turn, on ImageData.
+  #cpu(image, plan) {
+    for (const element of plan.elements) {
+      const result = element.apply(image, plan.context);
       if (result instanceof ImageData) image = result;
     }
-    return image;
+    const run = (input, calls) => {
+      for (const { effect, params } of calls) {
+        const result = effect.apply(input, params, plan.context);
+        if (result instanceof ImageData) input = result;
+      }
+      return input;
+    };
+    if (!plan.fade) return run(image, plan.calls);
+    const before = run(new ImageData(Uint8ClampedArray.from(image.data), image.width, image.height), plan.fade.from);
+    const after = run(image, plan.calls);
+    if (before.width !== after.width || before.height !== after.height) return after;
+    const [a, b, t] = [before.data, after.data, plan.fade.t];
+    for (let i = 0; i < b.length; i++) b[i] = a[i] + (b[i] - a[i]) * t;
+    return after;
+  }
+
+  // The chain as GPU passes, or null if any step needs the CPU.
+  #gpuSteps(plan, size) {
+    if (plan.fade) return null;
+    const steps = [];
+    for (const element of plan.elements) {
+      const pass = element.gpuPass?.(size, plan.context);
+      if (!pass) return null;
+      steps.push(pass);
+    }
+    for (const { effect, params } of plan.calls) {
+      const pass = gpuPass(effect, params, size, plan.context);
+      if (!pass) return null;
+      steps.push(pass);
+    }
+    return steps;
+  }
+
+  // --- transitions ----------------------------------------------------------
+
+  #transition = null; // { from, to, start, duration }
+
+  #startTransition(previous, current) {
+    const duration = parseDuration(this.getAttribute("transition"));
+    const reduced = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    if (!duration || reduced || previous === null || previous === current || !this.isConnected) {
+      this.#transition = null;
+      return;
+    }
+    // From where it is now, if it's already moving.
+    const t = this.#transitionProgress();
+    const between = t === null ? null : interpolateEffects(this.#transition.from, this.#transition.to, t);
+    const from = between ? between.map(({ name, args }) => `${name}(${args.join(", ")})`).join(" ") : previous;
+    this.#transition = { from, to: current ?? "", start: performance.now(), duration };
+    const tick = () => {
+      if (!this.#transition || !this.isConnected) return;
+      this.#draw();
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  // How far along (eased), or null when there's no transition.
+  #transitionProgress() {
+    if (!this.#transition) return null;
+    const raw = (performance.now() - this.#transition.start) / this.#transition.duration;
+    if (raw >= 1) {
+      this.#transition = null;
+      return null;
+    }
+    return raw < 0.5 ? 2 * raw * raw : 1 - (-2 * raw + 2) ** 2 / 2;
   }
 
   #publishSwatches(image) {
+    if (!image) return this.#publish([]);
     const count = this.swatches;
     // Cluster into at least 8 colors and keep the most common: with fewer
     // clusters, a swatch would be an average of unlike colors.
@@ -513,6 +773,8 @@ export default class PixelCanvas extends HTMLElement {
   // result is drawn back onto the same canvas. The author's markup never
   // moves.
   #htmlCanvas = null;
+  #htmlContent = null; // the <div> in it the content is slotted into
+  #htmlKind = null; // the context the html canvas has: "2d" or "webgl2"
   #htmlFailed = false; // it threw once: show the content as it is from then on
   #resizeObserver = null;
   #onPaint = () => this.#paintHTML();
@@ -525,9 +787,16 @@ export default class PixelCanvas extends HTMLElement {
       canvas.setAttribute("layoutsubtree", "");
       canvas.setAttribute("part", "html-canvas");
       canvas.addEventListener("paint", this.#onPaint);
-      canvas.append(this.#slot);
+      // One element is drawn: a block holding everything slotted in, so the
+      // content lays out as it would elsewhere (bare text included).
+      const content = document.createElement("div");
+      content.setAttribute("part", "html-content");
+      content.append(this.#slot);
+      canvas.append(content);
       this.shadowRoot.append(canvas);
       this.#htmlCanvas = canvas;
+      this.#htmlContent = content;
+      this.#htmlKind = null;
       setAttr(this, "data-html", "");
       this.#label(null);
       this.#resizeObserver = new ResizeObserver(() => this.#fitHTML());
@@ -540,6 +809,7 @@ export default class PixelCanvas extends HTMLElement {
       this.shadowRoot.append(this.#slot);
       this.#htmlCanvas.remove();
       this.#htmlCanvas = null;
+      this.#htmlContent = null;
       this.removeAttribute("data-html");
     } else if (this.#htmlCanvas && this.isConnected) {
       this.#observeContent(); // reconnected
@@ -550,7 +820,7 @@ export default class PixelCanvas extends HTMLElement {
     if (!this.#resizeObserver) return;
     this.#resizeObserver.disconnect();
     this.#resizeObserver.observe(this);
-    for (const element of this.#slot.assignedElements()) this.#resizeObserver.observe(element);
+    this.#resizeObserver.observe(this.#htmlContent);
     this.#fitHTML();
   };
 
@@ -560,10 +830,7 @@ export default class PixelCanvas extends HTMLElement {
   #fitHTML() {
     const canvas = this.#htmlCanvas;
     if (!canvas) return;
-    const top = canvas.getBoundingClientRect().top;
-    let bottom = top;
-    for (const element of this.#slot.assignedElements()) bottom = Math.max(bottom, element.getBoundingClientRect().bottom);
-    const height = Math.ceil(bottom - top);
+    const height = Math.ceil(this.#htmlContent.getBoundingClientRect().height);
     if (canvas.style.blockSize !== `${height}px`) canvas.style.blockSize = `${height}px`;
     const ratio = globalThis.devicePixelRatio || 1;
     const width = Math.round(canvas.getBoundingClientRect().width * ratio);
@@ -578,32 +845,57 @@ export default class PixelCanvas extends HTMLElement {
     if (!canvas || !canvas.width || !canvas.height) return;
     try {
       const box = canvas.getBoundingClientRect();
-      const scale = canvas.width / box.width;
-      const context = canvas.getContext("2d", { willReadFrequently: true });
-      context.reset();
-      // 1. The content, as laid out, at device resolution.
-      for (const element of this.#slot.assignedElements()) {
-        const rect = element.getBoundingClientRect();
-        context.drawElementImage(element, (rect.left - box.left) * scale, (rect.top - box.top) * scale, rect.width * scale, rect.height * scale);
-      }
-      // 2. Scaled to the working size (CSS pixels unless width/height say
-      // otherwise), through the effects.
+      // The working size: CSS pixels, unless width/height say otherwise.
       let [width, height] = [Math.max(1, Math.round(box.width)), Math.max(1, Math.round(box.height))];
       const w = Math.floor(Number(this.getAttribute("width")));
       const h = Math.floor(Number(this.getAttribute("height")));
       if (w > 0) [width, height] = [w, Math.max(1, Math.round((box.height / box.width) * w))];
       else if (h > 0) [width, height] = [Math.max(1, Math.round((box.width / box.height) * h)), h];
-      const work = new OffscreenCanvas(width, height).getContext("2d", { willReadFrequently: true });
-      work.drawImage(canvas, 0, 0, width, height);
-      const image = this.#applyEffects(work.getImageData(0, 0, width, height));
-      work.canvas.width = image.width;
-      work.canvas.height = image.height;
-      work.putImageData(image, 0, 0);
-      // 3. Back onto the canvas, scaled up crisply.
-      context.reset();
-      context.imageSmoothingEnabled = false;
-      context.drawImage(work.canvas, 0, 0, canvas.width, canvas.height);
-      this.#publishSwatches(image);
+      this.#workSize = [width, height];
+      const plan = this.#plan();
+      const steps = this.hasAttribute("gpu") && gpuAvailable() ? this.#gpuSteps(plan, { width, height }) : null;
+      const kind = steps ? "webgl2" : "2d";
+      if (this.#htmlKind && this.#htmlKind !== kind) {
+        // A canvas keeps its first context: start again with a new one.
+        this.#rebuildHTML();
+        return;
+      }
+      this.#htmlKind = kind;
+      if (steps) {
+        // GPU: the content goes straight into a texture, and nothing comes back.
+        const gl = canvas.getContext("webgl2", { premultipliedAlpha: false, preserveDrawingBuffer: true, antialias: false });
+        const image = pipelineFor(gl).run({
+          upload: (gl) => gl.texElementImage2D(gl.TEXTURE_2D, gl.RGBA8, this.#htmlContent),
+          sourceWidth: canvas.width,
+          sourceHeight: canvas.height,
+          width,
+          height,
+          steps,
+          present: { width: canvas.width, height: canvas.height },
+          context: plan.context,
+          read: this.swatches > 0,
+        });
+        this.#publishSwatches(image);
+        this.#renderer = "gpu";
+      } else {
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        context.reset();
+        // 1. The content, as laid out, at device resolution.
+        context.drawElementImage(this.#htmlContent, 0, 0, canvas.width, canvas.height);
+        // 2. Scaled to the working size, through the effects.
+        const work = new OffscreenCanvas(width, height).getContext("2d", { willReadFrequently: true });
+        work.drawImage(canvas, 0, 0, width, height);
+        const image = this.#cpu(work.getImageData(0, 0, width, height), plan);
+        work.canvas.width = image.width;
+        work.canvas.height = image.height;
+        work.putImageData(image, 0, 0);
+        // 3. Back onto the canvas, scaled up crisply.
+        context.reset();
+        context.imageSmoothingEnabled = false;
+        context.drawImage(work.canvas, 0, 0, canvas.width, canvas.height);
+        this.#publishSwatches(image);
+        this.#renderer = "cpu";
+      }
     } catch (error) {
       // Show the content as it is, and say why.
       this.#htmlFailed = true;
@@ -615,6 +907,15 @@ export default class PixelCanvas extends HTMLElement {
       this.#loadedSource = this;
       this.dispatchEvent(new Event("load"));
     }
+    this.dispatchEvent(new Event("framechange"));
+  }
+
+  #rebuildHTML() {
+    const failed = this.#htmlFailed;
+    this.#htmlFailed = true; // tear down
+    this.#setHTMLMode();
+    this.#htmlFailed = failed; // and set up again
+    this.#setHTMLMode();
   }
 
   // Set --pixel-swatch-N on this element and the swatches-target ones,
@@ -699,4 +1000,11 @@ export default class PixelCanvas extends HTMLElement {
     }
   }
   #generatedLabel = null;
+}
+
+// "400ms", "0.4s", or a number of milliseconds -> milliseconds (0 if none).
+function parseDuration(text) {
+  const match = /^\s*(\d*\.?\d+)\s*(ms|s)?\s*$/i.exec(text ?? "");
+  if (!match) return 0;
+  return Number(match[1]) * (match[2]?.toLowerCase() === "s" ? 1000 : 1);
 }

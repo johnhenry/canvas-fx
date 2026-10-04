@@ -1,6 +1,6 @@
 // <pixel-chroma-key>: the chroma-key() effect as an element. See readme.md.
 import { PixelEffect } from "../effects.mjs";
-import { params, apply } from "./effect.mjs";
+import { params, apply, gpu } from "./effect.mjs";
 
 /**
  * Makes one color transparent, like a green screen. The element form of `chroma-key(color, tolerance, softness)`.
@@ -14,5 +14,5 @@ import { params, apply } from "./effect.mjs";
  * @attr {boolean} disabled - Pass the image through unchanged.
  */
 export default class PixelChromaKey extends PixelEffect {
-  static effect = { name: "chroma-key", params, apply };
+  static effect = { name: "chroma-key", params, apply, gpu };
 }

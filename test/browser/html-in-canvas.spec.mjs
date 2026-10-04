@@ -90,3 +90,61 @@ test("without HTML-in-canvas, the content shows as it is, and works", async ({ p
   await page.waitForTimeout(200);
   expect(errors).toEqual([]);
 });
+
+test("with gpu, live HTML goes straight to a texture: the same pixels, still interactive", async ({ page }) => {
+  const CARD = (gpu) => `
+    <pixel-canvas id="p" html ${gpu ? "gpu" : ""} effects="mosaic(4) palette(gameboy)" style="width: 320px">
+      <form id="f" style="background: rgb(200, 220, 255); padding: 16px; margin: 0">
+        Bare text is drawn too
+        <button id="go" type="button" style="font-size: 20px">Go</button>
+      </form>
+    </pixel-canvas>`;
+  await mount(page, CARD(false), MODULES);
+  test.skip(!(await supported(page)), "needs HTML-in-canvas (the chromium-html-in-canvas project)");
+  const read = () =>
+    page.evaluate(async () => {
+      await new Promise((r) => setTimeout(r, 300));
+      const host = document.getElementById("p");
+      const canvas = host.shadowRoot.querySelector("canvas[part=html-canvas]");
+      // Read what's shown, whatever the canvas's context.
+      const copy = new OffscreenCanvas(canvas.width, canvas.height).getContext("2d");
+      copy.drawImage(canvas, 0, 0);
+      return { renderer: host.renderer, data: [...copy.getImageData(0, 0, canvas.width, canvas.height).data] };
+    });
+  const cpu = await read();
+  await page.evaluate((html) => (document.body.innerHTML = html), CARD(true));
+  const gpu = await read();
+  expect([cpu.renderer, gpu.renderer]).toEqual(["cpu", "gpu"]);
+  expect(gpu.data.length).toBe(cpu.data.length);
+  let off = 0;
+  for (let i = 0; i < cpu.data.length; i++) if (Math.abs(cpu.data[i] - gpu.data[i]) > 3) off++;
+  // The two paths shrink the content differently (the 2D canvas's resampler
+  // versus bilinear sampling), and the palette then rounds a few pixels to
+  // a neighboring color.
+  expect(off / cpu.data.length).toBeLessThan(0.03);
+  // Bare text is drawn: some of the card's area isn't the background color.
+  expect(new Set(gpu.data.filter((_, i) => i % 4 === 0)).size).toBeGreaterThan(1);
+  await page.evaluate(() => document.getElementById("go").addEventListener("click", () => (window.clicked = true)));
+  const go = await page.locator("#go").boundingBox();
+  await page.mouse.click(go.x + go.width / 2, go.y + go.height / 2);
+  expect(await page.evaluate(() => window.clicked)).toBe(true);
+});
+
+test("pointer effects follow the pointer over live HTML", async ({ page }) => {
+  await mount(page, `
+    <pixel-canvas id="p" html effects="spotlight(20, 10, 0.9)" style="width: 320px">
+      <div style="background: rgb(255, 255, 255); height: 120px; display: flex; align-items: flex-end; font-size: 10px">An element with no content isn't drawn (Chromium 153), so this one has some.</div>
+    </pixel-canvas>`, MODULES);
+  test.skip(!(await supported(page)), "needs HTML-in-canvas (the chromium-html-in-canvas project)");
+  const box = await page.locator("#p").boundingBox();
+  await page.mouse.move(box.x + 20, box.y + 20);
+  await page.waitForTimeout(300);
+  const [near, far] = await page.evaluate(() => {
+    const canvas = document.getElementById("p").shadowRoot.querySelector("canvas[part=html-canvas]");
+    const scale = canvas.width / canvas.getBoundingClientRect().width;
+    const c = canvas.getContext("2d");
+    return [c.getImageData(20 * scale, 20 * scale, 1, 1).data[0], c.getImageData(300 * scale, 30 * scale, 1, 1).data[0]];
+  });
+  expect(near).toBeGreaterThan(240);
+  expect(far).toBeLessThan(60);
+});

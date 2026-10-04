@@ -85,6 +85,7 @@ definePixelShader("vignette", `
 | Method | Description |
 |---|---|
 | `apply(image, context)` |  |
+| `gpuPass()` | The shader as a GPU pass, for <pixel-canvas gpu>. |
 
 <!-- api:end -->
 

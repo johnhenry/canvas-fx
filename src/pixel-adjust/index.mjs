@@ -1,6 +1,6 @@
 // <pixel-adjust>: the adjust() effect as an element. See readme.md.
 import { PixelEffect } from "../effects.mjs";
-import { params, apply } from "./effect.mjs";
+import { params, apply, gpu } from "./effect.mjs";
 
 /**
  * Adjusts brightness, contrast, saturation, and hue, like the CSS filter functions of those names. The element form of `adjust(brightness, contrast, saturation, hue)`.
@@ -15,5 +15,5 @@ import { params, apply } from "./effect.mjs";
  * @attr {boolean} disabled - Pass the image through unchanged.
  */
 export default class PixelAdjust extends PixelEffect {
-  static effect = { name: "adjust", params, apply };
+  static effect = { name: "adjust", params, apply, gpu };
 }

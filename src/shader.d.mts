@@ -12,12 +12,17 @@ export declare function shaderParams(source: string): string[];
  * @param {ImageData} image
  * @param {string} source
  * @param {Record<string, string>} [params]
- * @param {{ time?: number, frame?: number }} [clock]
+ * @param {{ time?: number, frame?: number, pointer?: { x: number, y: number, inside: boolean } | null }} [clock]
  * @returns {ImageData}
  */
-export declare function runShader(image: ImageData, source: string, params?: Record<string, string>, { time, frame }?: {
+export declare function runShader(image: ImageData, source: string, params?: Record<string, string>, { time, frame, pointer }?: {
     time?: number;
     frame?: number;
+    pointer?: {
+        x: number;
+        y: number;
+        inside: boolean;
+    } | null;
 }): ImageData;
 /**
  * Register a shader as an effect: usable as `name(…)` in an `effects`
@@ -30,3 +35,10 @@ export declare function runShader(image: ImageData, source: string, params?: Rec
 export declare function definePixelShader(name: string, source: string, { params }?: {
     params?: string[];
 }): import("./effects.mjs").Effect;
+/**
+ * A shader as a GPU effect for <pixel-canvas gpu>: the same complete
+ * fragment shader, with its `u_` uniforms set from the parameters.
+ * @param {string} source
+ * @returns {import("./effects.mjs").GpuEffect}
+ */
+export declare function shaderGpu(source: string): import("./effects.mjs").GpuEffect;

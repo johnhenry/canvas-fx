@@ -1,6 +1,7 @@
 // halftone(size, angle, ink, paper): printed dots. Each cell of a grid
 // rotated by `angle` becomes one dot, larger where the image is darker.
 // ink="auto" colors each dot with its cell's color.
+import { gpuShader } from "../gpu.mjs";
 import { number, parseColor, luminance } from "../effects.mjs";
 
 export const params = ["size", "angle", "ink", "paper"];
@@ -43,3 +44,37 @@ export function apply(image, p) {
   }
   return image;
 }
+
+export const gpu = {
+  fragment: gpuShader(`uniform float u_size;
+uniform float u_angle;
+uniform vec4 u_ink;
+uniform float u_auto;
+uniform vec4 u_paper;
+void main() {
+  vec2 p = pixelAt();
+  float c = cos(u_angle), s = sin(u_angle);
+  float u = p.x * c + p.y * s;
+  float v = -p.x * s + p.y * c;
+  float cu = (floor(u / u_size) + 0.5) * u_size;
+  float cv = (floor(v / u_size) + 0.5) * u_size;
+  vec2 centre = floor(vec2(cu * c - cv * s, cu * s + cv * c) + 0.5);
+  vec4 cell = sampleAt(centre);
+  float darkness = 1.0 - (0.299 * cell.r + 0.587 * cell.g + 0.114 * cell.b);
+  float radius = (u_size / 2.0) * 1.4142135623730951 * sqrt(darkness);
+  bool inside = (u - cu) * (u - cu) + (v - cv) * (v - cv) <= radius * radius;
+  color = inside ? (u_auto > 0.5 ? vec4(cell.rgb, 1.0) : u_ink) : u_paper;
+}`),
+  uniforms: (p) => {
+    const auto = (p.ink ?? "").trim() === "auto";
+    const ink = auto ? [0, 0, 0, 255] : (parseColor(p.ink) ?? [0, 0, 0, 255]);
+    const paper = parseColor(p.paper) ?? [255, 255, 255, 255];
+    return {
+      u_size: number(p.size, 6, { min: 2 }),
+      u_angle: (number(p.angle, 45) * Math.PI) / 180,
+      u_ink: ink.map((v) => v / 255),
+      u_auto: auto ? 1 : 0,
+      u_paper: paper.map((v) => v / 255),
+    };
+  },
+};

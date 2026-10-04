@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>pixel-canvas: GPU, pointer, transitions, chaining, recording</title>
+<script type="module" src="../global.mjs"></script>
+<style>
+  body { font: 14px/1.5 system-ui, sans-serif; margin: 12px; }
+  .row { display: flex; gap: 20px; flex-wrap: wrap; align-items: start; }
+  figure { margin: 0; inline-size: 300px; }
+  pixel-canvas { inline-size: 300px; }
+  figcaption { margin-block-start: 4px; }
+  figcaption code { font-size: 12px; }
+  button, label { font: inherit; }
+  output { font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<div class="row">
+  <figure>
+    <pixel-canvas id="gpu" gpu width="150" fps="30" effects="adjust(contrast 1.2) mosaic(2) palette(pico-8, ordered) wave(2, 20, 0.5) crt()">
+      <img src="scene.svg" alt="A sunset, as an old game" />
+    </pixel-canvas>
+    <figcaption><code>gpu</code>: five effects as shaders. Ran on: <output id="renderer"></output>.
+      <label><input type="checkbox" id="use-gpu" checked> gpu</label></figcaption>
+  </figure>
+  <figure>
+    <pixel-canvas width="150" effects="palette(gameboy) lens(22, 3) spotlight(30, 16, 0.75)">
+      <img src="scene.svg" alt="A sunset, under a lens" />
+    </pixel-canvas>
+    <figcaption>Move the pointer over it: <code>lens()</code> and <code>spotlight()</code>.</figcaption>
+  </figure>
+  <figure>
+    <pixel-canvas id="fade" width="150" transition="600ms" effects="mosaic(1) palette(pico-8)">
+      <img src="scene.svg" alt="A sunset, changing style" />
+    </pixel-canvas>
+    <figcaption><code>transition="600ms"</code>:
+      <button type="button" data-effects="mosaic(1) palette(pico-8)">Fine</button>
+      <button type="button" data-effects="mosaic(12) palette(pico-8)">Blocky</button>
+      <button type="button" data-effects="halftone(5, 45)">Print</button></figcaption>
+  </figure>
+  <figure>
+    <pixel-canvas id="outer" effects="crt(0.5)">
+      <pixel-canvas effects="palette(1bit, ordered)" width="150">
+        <img src="scene.svg" alt="A sunset, dithered, on an old screen" />
+      </pixel-canvas>
+    </pixel-canvas>
+    <figcaption>Chained: <code>palette(1bit, ordered)</code>, then <code>crt()</code> at full size.</figcaption>
+  </figure>
+  <figure>
+    <pixel-canvas id="rec" width="100" fps="12" effects="palette(gameboy) glitch(0.4, 6)">
+      <img src="scene.svg" alt="A sunset, glitching" />
+    </pixel-canvas>
+    <figcaption>
+      <button type="button" id="gif">Save a GIF</button>
+      <button type="button" id="video">Record 3 s of video</button>
+      <output id="saved"></output>
+    </figcaption>
+  </figure>
+</div>
+<script type="module">
+  const gpu = document.getElementById("gpu");
+  const show = () => (document.getElementById("renderer").value = gpu.renderer);
+  gpu.addEventListener("framechange", show);
+  document.getElementById("use-gpu").onchange = (event) => (gpu.gpu = event.target.checked);
+  for (const button of document.querySelectorAll("[data-effects]")) {
+    button.onclick = () => document.getElementById("fade").setAttribute("effects", button.dataset.effects);
+  }
+  const save = (blob, name) => {
+    const link = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: name, textContent: `${name} (${Math.round(blob.size / 1024)} kB)` });
+    document.getElementById("saved").replaceChildren(link);
+  };
+  const rec = document.getElementById("rec");
+  document.getElementById("gif").onclick = async () => save(await rec.toGIF({ duration: 2, fps: 12 }), "sunset.gif");
+  document.getElementById("video").onclick = async () => {
+    const blob = await rec.record({ duration: 3 });
+    save(blob, `sunset.${blob.type.includes("mp4") ? "mp4" : "webm"}`);
+  };
+  rec.play();
+</script>
+</body>
+</html>

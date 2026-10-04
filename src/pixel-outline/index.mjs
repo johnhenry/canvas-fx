@@ -1,6 +1,6 @@
 // <pixel-outline>: the outline() effect as an element. See readme.md.
 import { PixelEffect } from "../effects.mjs";
-import { params, apply } from "./effect.mjs";
+import { params, apply, gpu } from "./effect.mjs";
 
 /**
  * Draws line art from the image's edges. The element form of `outline(threshold, ink, paper)`.
@@ -14,5 +14,5 @@ import { params, apply } from "./effect.mjs";
  * @attr {boolean} disabled - Pass the image through unchanged.
  */
 export default class PixelOutline extends PixelEffect {
-  static effect = { name: "outline", params, apply };
+  static effect = { name: "outline", params, apply, gpu };
 }

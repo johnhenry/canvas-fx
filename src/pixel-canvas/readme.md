@@ -71,6 +71,23 @@ customElements.define("my-plasma", class extends HTMLElement {
 The first such element inside (in document order) is the source. One
 that isn't defined yet becomes a source when it is.
 
+**A `<pixel-canvas>` is a source too:** it exposes `canvas` and fires
+`framechange` after each redraw, so canvases chain. The inner one's result
+goes through the outer one's effects, and the outer one follows every
+change:
+
+```html
+<pixel-canvas effects="crt()">
+  <pixel-canvas effects="mosaic(4) palette(gameboy)" swatches="3">
+    <img src="photo.jpg" alt="A photo" />
+  </pixel-canvas>
+</pixel-canvas>
+```
+
+That's how one source gets two looks with different settings, or how a
+later stage keeps its own `fps` or `transition`. (A `<pixel-canvas html>`
+can't be an inner one: its content must be on screen to be drawn.)
+
 ## HTML content (experimental)
 
 With `html`, the `<pixel-canvas>` draws its own HTML: a form, text,
@@ -97,8 +114,13 @@ part), which is as wide as the `<pixel-canvas>` and as tall as its content.
 
 - One working pixel is one CSS pixel, unless `width` or `height` says
   otherwise, so `mosaic(4)` makes 4-pixel blocks.
-- The content's elements are drawn, so put text inside an element (bare
-  text directly inside the `<pixel-canvas>` isn't drawn).
+- The content is laid out in a block (the `html-content` part) as it would
+  be anywhere else, bare text included, and that block is what's drawn.
+- In Chromium 153, an element with nothing in it (only a background, say)
+  isn't drawn; give it some content.
+- With `gpu`, the content goes straight into a WebGL texture
+  (`texElementImage2D(target, internalformat, element)` in this Chromium,
+  not the explainer's argument order) and nothing is read back.
 - Effects that move pixels (`wave`, `glitch`) move the picture, not the
   hit areas: clicks go where the content really is.
 - With `html`, the element's role is its content's, not an image's.
@@ -123,6 +145,58 @@ invoker commands control the clock, as on
 [`<frame-timer>`](https://github.com/johnhenry/domkit/blob/main/src/frame-timer/readme.md). Pausing freezes `time`
 (and the `fps` redraws), not a video source. For visitors who prefer
 reduced motion, the clock waits for `play()`.
+
+## On the GPU
+
+With `gpu`, the whole chain runs on WebGL2 when every effect in it can: the
+source is uploaded once, each effect is a fragment shader passing a texture
+to the next, and the result is drawn without coming back to the CPU (unless
+`swatches` needs it). For large sources, live HTML, and video, that's the
+difference between keeping up and not.
+
+```html
+<pixel-canvas gpu width="480" effects="adjust(contrast 1.2) mosaic(3) palette(pico-8, ordered) crt()">
+  <video src="clip.mp4" autoplay muted loop></video>
+</pixel-canvas>
+```
+
+`mosaic` (blocks up to 64), `palette` (named or listed palettes up to 64
+colors, undithered or `ordered`), `grid`, `adjust`, `halftone`, `outline`,
+`crt`, `chroma-key`, `wave`, `lens`, `spotlight`, every `<pixel-shader>`,
+and every `definePixelShader()` effect run there; the GPU draws what the CPU
+draws, to within rounding (the tests compare them pixel by pixel). A chain
+with anything else (`glitch`, `palette(auto)`, Floyd–Steinberg dithering,
+a JavaScript effect) runs on the CPU as before. `renderer` says which ran
+(`"gpu"` or `"cpu"`). Your own effect gets a GPU version through
+`definePixelEffect(name, apply, { gpu: { fragment, uniforms } })`; see
+`gpu.mjs` for what a fragment shader is given.
+
+## Following the pointer
+
+Effects get the pointer, in the image's pixels: `{ x, y, inside, down }`
+(0,0 at the top left), or null before it's been over the canvas.
+`lens(radius, zoom)` and `spotlight(radius, softness, dim)` use it, and so
+can your own effects (`definePixelEffect(…, { pointer: true })`, or
+`u_pointer` in a shader). A canvas with one redraws as the pointer moves,
+with no `fps` needed:
+
+```html
+<pixel-canvas width="320" effects="palette(gameboy) spotlight(40, 24)">
+  <img src="map.png" alt="A map" />
+</pixel-canvas>
+```
+
+## Transitions
+
+`transition="400ms"` animates changes to `effects`: numbers in the same
+effects are interpolated (`mosaic(2)` to `mosaic(16)` grows the blocks),
+and a different list of effects cross-fades from the old look to the new.
+A change mid-transition starts from where it is. Visitors who prefer
+reduced motion get the new look at once.
+
+```js
+canvas.setAttribute("effects", "mosaic(16) palette(1bit)"); // animates, with transition set
+```
 
 ## Colors from the image
 
@@ -156,6 +230,19 @@ canvas's, for downloads and uploads:
 const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 ```
 
+**Animated GIF:** `toGIF({ frames, fps, loop })` (or `{ duration, fps }`)
+samples the result `fps` times a second and encodes it, at the working
+size, with no library: pixel art keeps its exact colors (a frame with more
+than 255 is quantized). **Video:** `record({ duration, fps })` records WebM
+(or MP4) with `MediaRecorder`, and `captureStream(fps)` is the live stream,
+for a `<video>`, WebRTC, or your own recorder. Effects that change over time
+need `fps` (or a playing video) to animate while you capture.
+
+```js
+const gif = await canvas.toGIF({ duration: 2, fps: 12 });
+const video = await canvas.record({ duration: 5 });
+```
+
 ## API
 
 <!-- api:start (generated from custom-elements.json by `npm run manifest`; edit the JSDoc instead) -->
@@ -171,7 +258,9 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 | `swatches-target` | `swatchesTarget` | `string` | A selector for more elements to set those custom properties on (for example `html`, to theme the page). They're always set on the `<pixel-canvas>` itself. |
 | `fps` |  | `number` | Redraw at this rate, so effects that change over time (`glitch`, `wave`, your own) animate even on a still image. Without it, it redraws only when something changes (or every frame of a playing video). |
 | `paused` | `paused` | `boolean` | Stops the clock effects animate by, and the `fps` redraws. Reflects; write it in markup to start paused. |
-| `html` |  | `boolean` | Experimental: draw its own HTML content (live, and still interactive) through the effects, where the browser supports HTML-in-canvas; elsewhere the content shows as it is. Without `width`/`height`, one working pixel is one CSS pixel. |
+| `html` | `html` | `boolean` | Experimental: draw its own HTML content (live, and still interactive) through the effects, where the browser supports HTML-in-canvas; elsewhere the content shows as it is. Without `width`/`height`, one working pixel is one CSS pixel. |
+| `gpu` | `gpu` | `boolean` | Run the effects on the GPU (WebGL2) when every effect in the chain can: the source is uploaded once and nothing is read back (unless `swatches` needs it). Otherwise, or without WebGL2, they run on the CPU as usual. `renderer` says which ran. |
+| `transition` | `transition` | `string` | Animate changes to `effects` over this long (`400ms`, `0.5s`): numbers in the same effects are interpolated; a different list of effects cross-fades. Not for visitors who prefer reduced motion. |
 
 ### Properties
 
@@ -186,6 +275,10 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 | `swatchesTarget` | `string` | Mirrors the `swatches-target` attribute. |
 | `palette` (read-only) | `string[]` | With `swatches`: the result's most common colors, as `#rrggbb`, most common first. Empty otherwise. |
 | `canvas` (read-only) | `HTMLCanvasElement` | The canvas showing the result (in the shadow root). |
+| `gpu` | `boolean` | Mirrors the `gpu` attribute. |
+| `html` | `boolean` | Mirrors the `html` attribute. |
+| `transition` | `string` | Mirrors the `transition` attribute. |
+| `renderer` (read-only) | `string` | Where the last redraw ran: `"gpu"`, `"cpu"`, or `""` before the first. |
 | `width` | `number` | Mirrors the `width` attribute. |
 | `height` | `number` | Mirrors the `height` attribute. |
 
@@ -195,6 +288,9 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 |---|---|
 | `play()` | Start or resume the clock (and the `fps` redraws). |
 | `pause()` | Pause the clock where it is. |
+| `captureStream(fps)` | A video stream of the result, like `HTMLCanvasElement.captureStream()`. |
+| `record(options)` | Record the result as a video (WebM where supported, else MP4), for `duration` seconds. Effects that change over time need `fps` (or a playing video) to animate while it records. |
+| `toGIF(options)` | The result as an animated GIF, at the working size: `frames` frames (or `duration` seconds' worth) sampled `fps` times a second. Effects that change over time need `fps` (or a playing video) to animate while it captures. `loop`: 0 repeats forever, -1 plays once. |
 | `render()` | Draw now, instead of on the next frame. Returns whether it drew. |
 | `toBlob(type, quality)` | The result as an image file, like `HTMLCanvasElement.toBlob()`. |
 | `toDataURL(type, quality)` | The result as a data: URL, like `HTMLCanvasElement.toDataURL()`. |
@@ -206,6 +302,7 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 | `play` | The clock started or resumed. |
 | `pause` | The clock paused. |
 | `load` | The first frame of a source was drawn. |
+| `framechange` | After each redraw, so a `<pixel-canvas>` can be another one's source. |
 | `palettechange` | With `swatches`: the published colors changed. |
 | `error` | The source can't be read (for example, a cross-origin image without CORS) or an effect threw: an `ErrorEvent`, and the original content is shown instead. Also fired, once per name, for an unknown effect in `effects`, which is skipped. |
 

@@ -113,6 +113,22 @@
         },
         {
           "kind": "js",
+          "name": "PixelLens",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-lens/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PixelSpotlight",
+          "declaration": {
+            "name": "default",
+            "module": "./pixel-spotlight/index.mjs"
+          }
+        },
+        {
+          "kind": "js",
           "name": "definePixelEffect",
           "declaration": {
             "name": "definePixelEffect",
@@ -216,7 +232,7 @@
                 "text": "object"
               },
               "static": true,
-              "default": "{ name: \"adjust\", params, apply }"
+              "default": "{ name: \"adjust\", params, apply, gpu }"
             }
           ],
           "attributes": [
@@ -570,6 +586,118 @@
               "readonly": true
             },
             {
+              "kind": "field",
+              "name": "gpu",
+              "description": "Mirrors the `gpu` attribute.",
+              "type": {
+                "text": "boolean"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "html",
+              "description": "Mirrors the `html` attribute.",
+              "type": {
+                "text": "boolean"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "transition",
+              "description": "Mirrors the `transition` attribute.",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "renderer",
+              "description": "Where the last redraw ran: `\"gpu\"`, `\"cpu\"`, or `\"\"` before the first.",
+              "type": {
+                "text": "string"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "#renderer",
+              "privacy": "private",
+              "type": {
+                "text": "string"
+              },
+              "default": "\"\""
+            },
+            {
+              "kind": "method",
+              "name": "captureStream",
+              "parameters": [
+                {
+                  "name": "fps",
+                  "optional": true,
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ],
+              "description": "A video stream of the result, like `HTMLCanvasElement.captureStream()`.",
+              "return": {
+                "type": {
+                  "text": "MediaStream"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "record",
+              "parameters": [
+                {
+                  "name": "{ duration = 3, fps = 30, type }",
+                  "default": "{}"
+                },
+                {
+                  "name": "options",
+                  "optional": true,
+                  "type": {
+                    "text": "{ duration?: number, fps?: number, type?: string }"
+                  }
+                }
+              ],
+              "description": "Record the result as a video (WebM where supported, else MP4), for\n`duration` seconds. Effects that change over time need `fps` (or a\nplaying video) to animate while it records.",
+              "return": {
+                "type": {
+                  "text": "Promise<Blob>"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "toGIF",
+              "parameters": [
+                {
+                  "name": "{ duration = 2, fps = 10, frames, loop = 0 }",
+                  "default": "{}"
+                },
+                {
+                  "name": "options",
+                  "optional": true,
+                  "type": {
+                    "text": "{ duration?: number, fps?: number, frames?: number, loop?: number }"
+                  }
+                }
+              ],
+              "description": "The result as an animated GIF, at the working size: `frames` frames\n(or `duration` seconds' worth) sampled `fps` times a second. Effects\nthat change over time need `fps` (or a playing video) to animate while\nit captures. `loop`: 0 repeats forever, -1 plays once.",
+              "return": {
+                "type": {
+                  "text": "Promise<Blob>"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "#snapshot",
+              "privacy": "private"
+            },
+            {
               "kind": "method",
               "name": "render",
               "description": "Draw now, instead of on the next frame. Returns whether it drew.",
@@ -669,6 +797,16 @@
             },
             {
               "kind": "method",
+              "name": "#natural",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "source"
+                }
+              ]
+            },
+            {
+              "kind": "method",
               "name": "#size",
               "privacy": "private",
               "parameters": [
@@ -692,14 +830,89 @@
               "default": "null"
             },
             {
+              "kind": "field",
+              "name": "#pointer",
+              "privacy": "private",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "#usesPointer",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "#workSize",
+              "privacy": "private",
+              "type": {
+                "text": "array"
+              },
+              "default": "[0, 0]"
+            },
+            {
               "kind": "method",
-              "name": "#applyEffects",
+              "name": "#plan",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#cpu",
               "privacy": "private",
               "parameters": [
                 {
                   "name": "image"
+                },
+                {
+                  "name": "plan"
                 }
               ]
+            },
+            {
+              "kind": "method",
+              "name": "#gpuSteps",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "plan"
+                },
+                {
+                  "name": "size"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "#transition",
+              "privacy": "private",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "method",
+              "name": "#startTransition",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "previous"
+                },
+                {
+                  "name": "current"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "#transitionProgress",
+              "privacy": "private"
             },
             {
               "kind": "method",
@@ -714,6 +927,24 @@
             {
               "kind": "field",
               "name": "#htmlCanvas",
+              "privacy": "private",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "#htmlContent",
+              "privacy": "private",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "#htmlKind",
               "privacy": "private",
               "type": {
                 "text": "null"
@@ -761,6 +992,11 @@
             {
               "kind": "method",
               "name": "#paintHTML",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#rebuildHTML",
               "privacy": "private"
             },
             {
@@ -878,6 +1114,13 @@
               "description": "The first frame of a source was drawn."
             },
             {
+              "name": "framechange",
+              "type": {
+                "text": "Event"
+              },
+              "description": "After each redraw, so a `<pixel-canvas>` can be another one's source."
+            },
+            {
               "name": "palettechange",
               "type": {
                 "text": "Event"
@@ -948,6 +1191,20 @@
                 "text": "boolean"
               },
               "description": "Experimental: draw its own HTML content (live, and still interactive) through the effects, where the browser supports HTML-in-canvas; elsewhere the content shows as it is. Without `width`/`height`, one working pixel is one CSS pixel."
+            },
+            {
+              "name": "gpu",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Run the effects on the GPU (WebGL2) when every effect in the chain can: the source is uploaded once and nothing is read back (unless `swatches` needs it). Otherwise, or without WebGL2, they run on the CPU as usual. `renderer` says which ran."
+            },
+            {
+              "name": "transition",
+              "type": {
+                "text": "string"
+              },
+              "description": "Animate changes to `effects` over this long (`400ms`, `0.5s`): numbers in the same effects are interpolated; a different list of effects cross-fades. Not for visitors who prefer reduced motion."
             }
           ],
           "superclass": {
@@ -1000,7 +1257,7 @@
                 "text": "object"
               },
               "static": true,
-              "default": "{ name: \"chroma-key\", params, apply }"
+              "default": "{ name: \"chroma-key\", params, apply, gpu }"
             }
           ],
           "attributes": [
@@ -1084,7 +1341,7 @@
                 "text": "object"
               },
               "static": true,
-              "default": "{ name: \"crt\", params, apply }"
+              "default": "{ name: \"crt\", params, apply, gpu }"
             }
           ],
           "attributes": [
@@ -1245,7 +1502,7 @@
                 "text": "object"
               },
               "static": true,
-              "default": "{ name: \"grid\", params, apply }"
+              "default": "{ name: \"grid\", params, apply, gpu }"
             }
           ],
           "attributes": [
@@ -1329,7 +1586,7 @@
                 "text": "object"
               },
               "static": true,
-              "default": "{ name: \"halftone\", params, apply }"
+              "default": "{ name: \"halftone\", params, apply, gpu }"
             }
           ],
           "attributes": [
@@ -1391,6 +1648,83 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/pixel-lens/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-lens",
+          "declaration": {
+            "name": "PixelLens",
+            "module": "src/pixel-lens/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-lens/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A magnifying glass that follows the pointer over the `<pixel-canvas>`. The element form of `lens(radius, zoom)`.",
+          "name": "PixelLens",
+          "members": [
+            {
+              "kind": "field",
+              "name": "effect",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ name: \"lens\", params, apply, gpu, pointer }"
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "The lens's radius, in working pixels. Default 24.",
+              "name": "radius"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "How much it enlarges. Default 2.",
+              "name": "zoom"
+            },
+            {
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Pass the image through unchanged.",
+              "name": "disabled"
+            }
+          ],
+          "superclass": {
+            "name": "PixelEffect",
+            "module": "/src/effects.mjs"
+          },
+          "tagName": "pixel-lens",
+          "customElement": true,
+          "summary": "A pixel effect: a magnifying glass at the pointer."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelLens",
+            "module": "src/pixel-lens/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/pixel-mosaic/global.mjs",
       "declarations": [],
       "exports": [
@@ -1420,7 +1754,7 @@
                 "text": "object"
               },
               "static": true,
-              "default": "{ name: \"mosaic\", params, apply }"
+              "default": "{ name: \"mosaic\", params, apply, gpu }"
             }
           ],
           "attributes": [
@@ -1490,7 +1824,7 @@
                 "text": "object"
               },
               "static": true,
-              "default": "{ name: \"outline\", params, apply }"
+              "default": "{ name: \"outline\", params, apply, gpu }"
             }
           ],
           "attributes": [
@@ -1574,7 +1908,7 @@
                 "text": "object"
               },
               "static": true,
-              "default": "{ name: \"palette\", params, apply }"
+              "default": "{ name: \"palette\", params, apply, gpu }"
             },
             {
               "kind": "field",
@@ -1700,6 +2034,16 @@
                   "text": "ImageData"
                 }
               }
+            },
+            {
+              "kind": "method",
+              "name": "gpuPass",
+              "description": "The shader as a GPU pass, for <pixel-canvas gpu>.",
+              "return": {
+                "type": {
+                  "text": "{ fragment: string, uniforms: Record<string, unknown> } | null"
+                }
+              }
             }
           ],
           "attributes": [
@@ -1727,6 +2071,90 @@
           "declaration": {
             "name": "PixelShader",
             "module": "src/pixel-shader/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-spotlight/global.mjs",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "pixel-spotlight",
+          "declaration": {
+            "name": "PixelSpotlight",
+            "module": "src/pixel-spotlight/index.mjs"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/pixel-spotlight/index.mjs",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Light around the pointer, the rest of the image dimmed. The element form of `spotlight(radius, softness, dim)`.",
+          "name": "PixelSpotlight",
+          "members": [
+            {
+              "kind": "field",
+              "name": "effect",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ name: \"spotlight\", params, apply, gpu, pointer }"
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "The lit circle's radius, in working pixels. Default 32.",
+              "name": "radius"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "How far the light fades out beyond the radius. Default 16.",
+              "name": "softness"
+            },
+            {
+              "type": {
+                "text": "number"
+              },
+              "description": "How dark the rest gets, 0–1. Default 0.7.",
+              "name": "dim"
+            },
+            {
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Pass the image through unchanged.",
+              "name": "disabled"
+            }
+          ],
+          "superclass": {
+            "name": "PixelEffect",
+            "module": "/src/effects.mjs"
+          },
+          "tagName": "pixel-spotlight",
+          "customElement": true,
+          "summary": "A pixel effect: a spotlight that follows the pointer."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixelSpotlight",
+            "module": "src/pixel-spotlight/index.mjs"
           }
         }
       ]
@@ -2052,7 +2480,7 @@
                 "text": "object"
               },
               "static": true,
-              "default": "{ name: \"wave\", params, apply }"
+              "default": "{ name: \"wave\", params, apply, gpu }"
             }
           ],
           "attributes": [

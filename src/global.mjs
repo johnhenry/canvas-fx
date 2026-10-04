@@ -13,3 +13,5 @@ import "./pixel-chroma-key/global.mjs";
 import "./pixel-glitch/global.mjs";
 import "./pixel-wave/global.mjs";
 import "./pixel-shader/global.mjs";
+import "./pixel-lens/global.mjs";
+import "./pixel-spotlight/global.mjs";
