@@ -33,7 +33,9 @@ image can't be read, the plain `<img>` shows, so nothing is lost.
 The [`<pixel-canvas>`](./pixel-canvas/readme.md) draws the result. Its
 source can be an `<img>`, a `<video>`, a `<canvas>`, or a
 [`<pixel-sprite>`](./pixel-sprite/readme.md): pixel art written as text,
-with animation frames.
+with animation frames. With `html` (experimental), it draws its own HTML
+content, live and still interactive, where the browser has
+[HTML-in-canvas](./pixel-canvas/readme.md#html-content-experimental).
 `global.mjs` here registers it and every effect element; for the
 `effects` attribute alone, `pixel-canvas/global.mjs` is enough.
 

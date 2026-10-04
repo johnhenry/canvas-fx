@@ -71,6 +71,39 @@ customElements.define("my-plasma", class extends HTMLElement {
 The first such element inside (in document order) is the source. One
 that isn't defined yet becomes a source when it is.
 
+## HTML content (experimental)
+
+With `html`, the `<pixel-canvas>` draws its own HTML: a form, text,
+anything, live, through the effects. It stays HTML: it's laid out where the
+result is drawn, so clicks, typing, focus, and screen readers all work as
+usual, and every change to it (a typed letter, a hover style) redraws.
+
+```html
+<pixel-canvas html effects="mosaic(3) palette(gameboy, ordered)">
+  <form>
+    <label>Name <input name="name"></label>
+    <button>Sign</button>
+  </form>
+</pixel-canvas>
+```
+
+This uses [HTML-in-canvas](https://github.com/WICG/html-in-canvas)
+(`<canvas layoutsubtree>` and `drawElementImage()`), which is still a
+proposal: in Chromium it's behind `chrome://flags/#canvas-draw-element`
+or an origin trial. Where it's missing, the content shows as it is,
+without effects, and works the same. Your markup isn't moved: it's slotted
+into a `<canvas layoutsubtree>` in the shadow root (the `html-canvas`
+part), which is as wide as the `<pixel-canvas>` and as tall as its content.
+
+- One working pixel is one CSS pixel, unless `width` or `height` says
+  otherwise, so `mosaic(4)` makes 4-pixel blocks.
+- The content's elements are drawn, so put text inside an element (bare
+  text directly inside the `<pixel-canvas>` isn't drawn).
+- Effects that move pixels (`wave`, `glitch`) move the picture, not the
+  hit areas: clicks go where the content really is.
+- With `html`, the element's role is its content's, not an image's.
+- The API may change before it ships; so may this.
+
 ## Animation
 
 Effects can change over time (`glitch()`, `wave()`, or your own): each one
@@ -138,6 +171,7 @@ const blob = await document.querySelector("pixel-canvas").toBlob("image/png");
 | `swatches-target` | `swatchesTarget` | `string` | A selector for more elements to set those custom properties on (for example `html`, to theme the page). They're always set on the `<pixel-canvas>` itself. |
 | `fps` |  | `number` | Redraw at this rate, so effects that change over time (`glitch`, `wave`, your own) animate even on a still image. Without it, it redraws only when something changes (or every frame of a playing video). |
 | `paused` | `paused` | `boolean` | Stops the clock effects animate by, and the `fps` redraws. Reflects; write it in markup to start paused. |
+| `html` |  | `boolean` | Experimental: draw its own HTML content (live, and still interactive) through the effects, where the browser supports HTML-in-canvas; elsewhere the content shows as it is. Without `width`/`height`, one working pixel is one CSS pixel. |
 
 ### Properties
 
