@@ -2,12 +2,12 @@
 
 Turns the image into printed dots, like a newspaper photo: the image is divided into cells on a grid rotated by `angle`, and each cell becomes one dot, larger where the image is darker. With `ink="auto"`, each dot takes its cell's color. Use it as `halftone(…)` in a
 [`<pixel-canvas>`](../pixel-canvas/readme.md)'s `effects`, or as this
-element wrapped around the source. Part of [pixelable](../../README.md).
+element wrapped around the source. Part of [canvas-fx](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/canvas-fx/global.mjs"></script>
 
 <pixel-canvas width="200" effects="halftone(5)">
   <img src="photo.jpg" alt="A photo" />

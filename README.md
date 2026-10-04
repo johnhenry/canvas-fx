@@ -1,16 +1,16 @@
-# pixelable
+# canvas-fx
 
-[![npm version](https://img.shields.io/npm/v/%40johnhenry%2Fpixelable.svg)](https://www.npmjs.com/package/@johnhenry/pixelable)
-[![CI](https://github.com/johnhenry/pixelable/actions/workflows/ci.yml/badge.svg)](https://github.com/johnhenry/pixelable/actions/workflows/ci.yml)
-[![license](https://img.shields.io/npm/l/%40johnhenry%2Fpixelable.svg)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/%40johnhenry%2Fcanvas-fx.svg)](https://www.npmjs.com/package/@johnhenry/canvas-fx)
+[![CI](https://github.com/johnhenry/canvas-fx/actions/workflows/ci.yml/badge.svg)](https://github.com/johnhenry/canvas-fx/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/%40johnhenry%2Fcanvas-fx.svg)](LICENSE)
 
-Full documentation: [opensource.johnhenry.me/pixelable](https://opensource.johnhenry.me/pixelable/)
+Full documentation: [opensource.johnhenry.me/canvas-fx](https://opensource.johnhenry.me/canvas-fx/)
 
 Pixel effects for any image, video, or canvas, written as HTML. Put the
 image in a `<pixel-canvas>` and list the effects, like CSS `filter`:
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/canvas-fx/global.mjs"></script>
 
 <pixel-canvas width="160" effects="adjust(contrast 1.3) palette(gameboy, ordered)">
   <img src="photo.jpg" alt="Our cat" />
@@ -42,28 +42,29 @@ HTML. Custom elements, shipped as source: no build step, no dependencies.
 ## Install
 
 ```sh
-npm install @johnhenry/pixelable
+npm install @johnhenry/canvas-fx
 ```
 
 Or straight from a CDN, with no install at all:
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/canvas-fx/global.mjs"></script>
 ```
 
 `global.mjs` registers every element; `pixel-canvas/global.mjs` alone is
-enough for the `effects` attribute; `@johnhenry/pixelable` exports every
+enough for the `effects` attribute; `@johnhenry/canvas-fx` exports every
 class unregistered, plus the effect toolkit (`definePixelEffect`,
 `definePixelShader`, …). Each element's guide is in its directory
 (`src/<element>/readme.md`); the generated
 [element reference](docs/reference.md) lists every attribute, property,
 event, and CSS part.
 
-**Provenance.** pixelable was developed inside
+**Provenance.** canvas-fx was developed inside
 [`@johnhenry/domkit`](https://github.com/johnhenry/domkit) (as
 `src/pixelable/`, and before that `experimental/pixel-shader` and the
 `pixelshader.component` that domkit 0.0.4 shipped, from `johnhenry/lib`) and
-split out into this package with its history. This family was never
+split out into this package with its history, as `pixelable` (renamed
+`canvas-fx` before its first release; the elements keep their `pixel-` names). This family was never
 published to npm under any name: `0.0.0` is its first version.
 
 ## Effects
@@ -128,7 +129,7 @@ list.
 `definePixelEffect()` registers an effect for both forms:
 
 ```js
-import { definePixelEffect, number } from "@johnhenry/pixelable/effects.mjs";
+import { definePixelEffect, number } from "@johnhenry/canvas-fx/effects.mjs";
 
 definePixelEffect(
   "posterize",
@@ -239,7 +240,7 @@ tag. Prefer this whenever the new behavior is a variant of an existing look.
    from `gpu.mjs`), and a test that the two draw the same pixels
    (`test/browser/expansions.spec.mjs` does this for every built-in).
 
-Then: a test in `test/browser/pixelable.spec.mjs` that checks actual pixels
+Then: a test in `test/browser/pixel-canvas.spec.mjs` that checks actual pixels
 (not just that the function ran), a row in the [Effects](#effects) table, a
 `readme.md` for the element, `npm run manifest`, and a CHANGELOG entry.
 
@@ -248,7 +249,7 @@ Then: a test in `test/browser/pixelable.spec.mjs` that checks actual pixels
 - **[`@johnhenry/domkit`](https://github.com/johnhenry/domkit)**, where this
   family started: its `<frame-timer>` is the clock that animated sources
   (games, sprites) usually run on, and its `<hot-key>`, `<gamepad-input>`,
-  and `<swipe-input>` drive whatever is drawn. pixelable doesn't import
+  and `<swipe-input>` drive whatever is drawn. canvas-fx doesn't import
   domkit; they meet in the page.
 - **[`forsnaken`](https://github.com/johnhenry/forsnaken)** is a consumer: its
   `<forsnaken-game>` is a custom source (it exposes a `canvas` and fires

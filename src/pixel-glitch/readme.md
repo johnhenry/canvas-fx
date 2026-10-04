@@ -2,12 +2,12 @@
 
 Digital breakup: bands of rows slide sideways and the red and blue channels split apart, differently at each step of the canvas clock. Give the `<pixel-canvas>` an `fps` to animate it on a still image; on a playing video it animates anyway. Use it as `glitch(…)` in a
 [`<pixel-canvas>`](../pixel-canvas/readme.md)'s `effects`, or as this
-element wrapped around the source. Part of [pixelable](../../README.md).
+element wrapped around the source. Part of [canvas-fx](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/canvas-fx/global.mjs"></script>
 
 <pixel-canvas width="200" fps="12" effects="glitch(0.4)">
   <img src="photo.jpg" alt="A photo" />

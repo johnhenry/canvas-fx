@@ -4,12 +4,12 @@ Draws an image, video, or canvas through [pixel effects](../../README.md),
 listed in its `effects` attribute like CSS `filter`, or wrapped around the
 source as elements. The first `<img>`, `<video>`, or `<canvas>` inside is
 the source, or a [`<pixel-sprite>`](../pixel-sprite/readme.md). Part of
-[pixelable](../../README.md).
+[canvas-fx](../../README.md).
 
 ## Usage
 
 ```html
-<script type="module" src="https://esm.sh/@johnhenry/pixelable/global.mjs"></script>
+<script type="module" src="https://esm.sh/@johnhenry/canvas-fx/global.mjs"></script>
 
 <pixel-canvas width="120" effects="adjust(contrast 1.2) palette(1bit, floyd-steinberg)">
   <img src="portrait.jpg" alt="A portrait, dithered" />
