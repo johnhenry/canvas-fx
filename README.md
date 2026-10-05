@@ -250,6 +250,9 @@ Then: a test in `test/browser/pixel-canvas.spec.mjs` that checks actual pixels
   (games, sprites) usually run on, and its `<hot-key>`, `<gamepad-input>`,
   and `<swipe-input>` drive whatever is drawn. canvas-fx doesn't import
   domkit; they meet in the page.
+- **[`@johnhenry/data-plot`](https://github.com/johnhenry/data-plot)**,
+  plots written as HTML: any element can be one of its marks, so a
+  `<pixel-sprite>` can be a point on a plot. Neither imports the other.
 - **[`forsnaken`](https://github.com/johnhenry/forsnaken)** is a consumer: its
   `<forsnaken-game>` is a custom source (it exposes a `canvas` and fires
   `framechange`), shown through `<pixel-canvas effects="grid(…)">`.
