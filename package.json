@@ -1,6 +1,6 @@
 {
   "name": "@johnhenry/canvas-fx",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Pixel effects for images, video, canvases, and live HTML, written as HTML: <pixel-canvas effects=\"mosaic(4) palette(gameboy)\">. Custom elements shipped as source, no build step.",
   "type": "module",
   "exports": {

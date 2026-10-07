@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.0.1 — 2026-10-07
 
 - **`https://esm.sh/@johnhenry/canvas-fx/global.mjs` works**, as every
   README says. esm.sh doesn't resolve subpaths through suffixed export
