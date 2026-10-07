@@ -31,6 +31,12 @@ step. Split out of `@johnhenry/domkit`, whose conventions it keeps.
 
 ## Repo-specific gotchas
 
+- **esm.sh doesn't resolve suffixed export patterns.** `"./*.mjs"` and
+  `"./*.css"` work in Node, bundlers, and import maps, but esm.sh 404s on
+  them; directory subpaths (`"./*"` → `index.mjs`) and exact keys work.
+  Any subpath the docs give as an esm.sh URL needs its own `exports` key,
+  as `./global.mjs` has (0.0.0 shipped without it, and every README's
+  esm.sh line 404'd).
 - **HTML-in-canvas is behind a flag.** `--enable-blink-features=CanvasDrawElement`
   turns it on in Playwright's Chromium (the `chromium-html-in-canvas`
   project). The API may change before it ships; feature-detect
