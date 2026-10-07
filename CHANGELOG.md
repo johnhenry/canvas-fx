@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **`https://esm.sh/@johnhenry/canvas-fx/global.mjs` works**, as every
+  README says. esm.sh doesn't resolve subpaths through suffixed export
+  patterns (`"./*.mjs"`), so `global.mjs` 404'd there in 0.0.0; it now has
+  its own `exports` key. (jsDelivr and npm imports were never affected.)
 - **The gallery shows each example's source beside it** (`demo/`, not
   published): the exact file each card's frame runs, highlighted by
   domkit's `<code-color>`, with a checkbox to hide it.

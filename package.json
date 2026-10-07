@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.mjs",
+    "./global.mjs": "./src/global.mjs",
     "./package.json": "./package.json",
     "./custom-elements.json": "./custom-elements.json",
     "./vscode.html-custom-data.json": "./vscode.html-custom-data.json",
