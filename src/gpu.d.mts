@@ -7,11 +7,26 @@ export declare const PRELUDE = "#version 300 es\nprecision highp float;\nuniform
  */
 export declare const gpuShader: (body: string) => string;
 /**
- * The pipeline for a WebGL2 context (made on first use).
+ * Fires "restore" after the shared context was lost and came back, or after
+ * resetGpu(): everything drawn on the GPU should be drawn again.
+ * <pixel-canvas> listens to this; so can code that draws with pipelineFor().
+ */
+export declare const gpuEvents: EventTarget;
+/**
+ * The pipeline for a WebGL2 context (made on first use). A context the
+ * browser took away (it caps how many a page may hold) takes its textures,
+ * buffers and programs with it, so when it's restored the pipeline is built
+ * again from scratch on the next call.
  * @param {WebGL2RenderingContext} gl
  */
 export declare function pipelineFor(gl: WebGL2RenderingContext): any;
 /** A WebGL2 context shared by every <pixel-canvas> drawing an ordinary source. */
 export declare function sharedContext(): any;
+/**
+ * Throw away every pipeline and the shared context, so the next draw starts
+ * on a fresh one (for a page that wants its GPU budget back, or a context
+ * that never came back). Elements redraw ("restore" is fired).
+ */
+export declare function resetGpu(): void;
 /** Whether this browser can run the GPU path at all. */
 export declare function gpuAvailable(): boolean;
