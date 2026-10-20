@@ -169,6 +169,13 @@ which ran. Your own effect gets a GPU version with
 `definePixelEffect(name, apply, { gpu: { fragment, uniforms } })` (see
 `gpu.mjs`).
 
+Browsers cap the WebGL contexts a page can hold and drop the oldest. When
+the shared context is lost and restored, the pipeline is rebuilt and every
+`<pixel-canvas gpu>` redraws by itself. `resetGpu()` (from `gpu.mjs`) throws
+the shared context and all pipelines away on purpose, and `gpuEvents`
+(an `EventTarget`) fires `restore` after either, for code that draws with
+`pipelineFor()` itself.
+
 [`<pixel-shader>`](src/pixel-shader/readme.md) runs a GLSL fragment shader
 you write in a `<script type="x-shader/x-fragment">` child, on the GPU,
 with the image, its size, and the clock provided, and its `u_` uniforms

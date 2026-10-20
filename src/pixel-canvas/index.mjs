@@ -43,7 +43,7 @@
 import "../builtins.mjs";
 import { effectRegistry, getPixelEffect, gpuPass, interpolateEffects, parseEffects, resolveParams } from "../effects.mjs";
 import { dominantColors, toHex } from "../quantize.mjs";
-import { gpuAvailable, pipelineFor, sharedContext } from "../gpu.mjs";
+import { gpuAvailable, gpuEvents, pipelineFor, sharedContext } from "../gpu.mjs";
 import { encodeGIF } from "../gif.mjs";
 import { settings as glyphSettings } from "../pixel-glyphs/effect.mjs";
 import { chooseGlyphs, glyphText } from "../pixel-glyphs/glyphs.mjs";
@@ -116,6 +116,8 @@ export default class PixelCanvas extends HTMLElement {
   #reportedUnknown = new Set();
   // An effect defined after this element drew may be one it's waiting on.
   #onDefine = () => this.#schedule();
+  // The GPU context was lost and restored (or reset): draw again.
+  #onGpuRestore = () => this.#schedule();
 
   constructor() {
     super();
@@ -166,6 +168,7 @@ export default class PixelCanvas extends HTMLElement {
   connectedCallback() {
     this.addEventListener("pixelchange", this.#onPixelChange);
     effectRegistry.addEventListener("define", this.#onDefine);
+    gpuEvents.addEventListener("restore", this.#onGpuRestore);
     // characterData too: editing a <pixel-shader>'s code or a sprite's text.
     this.#observer.observe(this, { childList: true, subtree: true, attributes: true, characterData: true });
     this.#runClock();
@@ -177,6 +180,7 @@ export default class PixelCanvas extends HTMLElement {
     this.#resizeObserver?.disconnect();
     this.removeEventListener("pixelchange", this.#onPixelChange);
     effectRegistry.removeEventListener("define", this.#onDefine);
+    gpuEvents.removeEventListener("restore", this.#onGpuRestore);
     this.#observer.disconnect();
     cancelAnimationFrame(this.#scheduled);
     this.#scheduled = 0;

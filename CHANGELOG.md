@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0 — 2026-10-20
+
+- **The GPU path survives a lost WebGL context.** Browsers cap the contexts
+  a page can hold and drop the oldest; canvas-fx kept the dead pipeline and
+  never let the context come back. It now rebuilds `pipelineFor(gl)` on
+  `webglcontextrestored` and every `<pixel-canvas gpu>` redraws. New
+  exports from `gpu.mjs`: `resetGpu()` and `gpuEvents` (`restore`).
+
 ## 0.0.1 — 2026-10-07
 
 - **`https://esm.sh/@johnhenry/canvas-fx/global.mjs` works**, as every

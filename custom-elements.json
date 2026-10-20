@@ -427,6 +427,11 @@
             },
             {
               "kind": "field",
+              "name": "#onGpuRestore",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
               "name": "time",
               "description": "Seconds on the clock that effects animate by. It runs while the\nelement is connected and not paused (and, for visitors who prefer\nreduced motion, only once `play()` is called).",
               "type": {

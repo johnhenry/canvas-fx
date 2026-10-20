@@ -51,16 +51,43 @@ const COPY = gpuShader("void main() { color = texture(u_image, v_uv); }");
 // The last pass, to the screen: framebuffer rows run bottom to top.
 const PRESENT = gpuShader("void main() { color = texture(u_image, vec2(v_uv.x, 1.0 - v_uv.y)); }");
 
-const pipelines = new WeakMap(); // WebGL2RenderingContext -> Pipeline
+let pipelines = new WeakMap(); // WebGL2RenderingContext -> Pipeline
+const watched = new WeakSet(); // contexts whose loss and restore we follow
 
 /**
- * The pipeline for a WebGL2 context (made on first use).
+ * Fires "restore" after the shared context was lost and came back, or after
+ * resetGpu(): everything drawn on the GPU should be drawn again.
+ * <pixel-canvas> listens to this; so can code that draws with pipelineFor().
+ */
+export const gpuEvents = new EventTarget();
+
+/**
+ * The pipeline for a WebGL2 context (made on first use). A context the
+ * browser took away (it caps how many a page may hold) takes its textures,
+ * buffers and programs with it, so when it's restored the pipeline is built
+ * again from scratch on the next call.
  * @param {WebGL2RenderingContext} gl
  */
 export function pipelineFor(gl) {
+  watch(gl);
   let pipeline = pipelines.get(gl);
   if (!pipeline) pipelines.set(gl, (pipeline = new Pipeline(gl)));
   return pipeline;
+}
+
+function watch(gl) {
+  const target = gl.canvas;
+  if (watched.has(gl) || !target?.addEventListener) return;
+  watched.add(gl);
+  // Without preventDefault() the browser never restores the context.
+  target.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault();
+    pipelines.delete(gl);
+  });
+  target.addEventListener("webglcontextrestored", () => {
+    pipelines.delete(gl);
+    gpuEvents.dispatchEvent(new Event("restore"));
+  });
 }
 
 let shared = null;
@@ -70,7 +97,20 @@ export function sharedContext() {
   const canvas = new OffscreenCanvas(1, 1);
   shared = canvas.getContext("webgl2", { premultipliedAlpha: false, preserveDrawingBuffer: true, antialias: false });
   if (!shared) throw new Error("WebGL2 isn't available, so effects can't run on the GPU");
+  watch(shared);
   return shared;
+}
+
+/**
+ * Throw away every pipeline and the shared context, so the next draw starts
+ * on a fresh one (for a page that wants its GPU budget back, or a context
+ * that never came back). Elements redraw ("restore" is fired).
+ */
+export function resetGpu() {
+  shared?.getExtension("WEBGL_lose_context")?.loseContext();
+  shared = null;
+  pipelines = new WeakMap();
+  gpuEvents.dispatchEvent(new Event("restore"));
 }
 
 /** Whether this browser can run the GPU path at all. */
